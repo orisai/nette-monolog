@@ -1,0 +1,10 @@
+extensions:
+	monolog: OriNette\Monolog\DI\MonologExtension
+
+monolog:
+	channels:
+		ch_foo: []
+		ch_bar:
+			autowired: true
+		ch_baz:
+			autowired: Tests\OriNette\Monolog\Doubles\BazLogger

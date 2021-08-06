@@ -1,0 +1,7 @@
+extensions:
+	monolog: OriNette\Monolog\DI\MonologExtension
+
+monolog:
+	channels:
+		ch_baz:
+			autowired: stdClass

@@ -1,0 +1,2 @@
+extensions:
+	monolog: OriNette\Monolog\DI\MonologExtension

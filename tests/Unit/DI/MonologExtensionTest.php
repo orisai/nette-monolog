@@ -2,6 +2,8 @@
 
 namespace Tests\OriNette\Monolog\Unit\DI;
 
+use Monolog\Handler\HandlerInterface;
+use Monolog\Handler\TestHandler;
 use Monolog\Logger;
 use Monolog\Test\TestCase;
 use OriNette\DI\Boot\ManualConfigurator;
@@ -22,6 +24,8 @@ final class MonologExtensionTest extends TestCase
 		$container = $configurator->createContainer();
 
 		self::assertSame([], $container->findByType(LoggerInterface::class));
+		self::assertSame([], $container->findByType(Logger::class));
+		self::assertSame([], $container->findByType(HandlerInterface::class));
 	}
 
 	public function testChannelWiring(): void
@@ -61,6 +65,34 @@ Solution: Use bool or class which extends expected class instead.
 MSG);
 
 		$configurator->createContainer();
+	}
+
+	public function testHandlerWiring(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/extension.handlerWiring.neon');
+
+		$container = $configurator->createContainer();
+
+		$fooChannel = $container->getService('monolog.channel.ch_foo');
+		self::assertInstanceOf(Logger::class, $fooChannel);
+
+		$barChannel = $container->getService('monolog.channel.ch_bar');
+		self::assertInstanceOf(Logger::class, $barChannel);
+
+		$fooHandlers = $fooChannel->getHandlers();
+		self::assertCount(2, $fooHandlers);
+
+		self::assertSame($fooHandlers, $barChannel->getHandlers());
+
+		$handlerA = $container->getService('monolog.handler.h_a');
+		self::assertInstanceOf(TestHandler::class, $handlerA);
+
+		$handlerB = $container->getService('monolog.handler.h_b');
+		self::assertInstanceOf(TestHandler::class, $handlerB);
+
+		self::assertSame([$handlerA, $handlerB], $fooHandlers);
 	}
 
 }

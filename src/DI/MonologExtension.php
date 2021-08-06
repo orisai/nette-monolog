@@ -4,8 +4,10 @@ namespace OriNette\Monolog\DI;
 
 use Monolog\Logger;
 use Nette\DI\CompilerExtension;
+use Nette\DI\Definitions\Statement;
 use Nette\Schema\Expect;
 use Nette\Schema\Schema;
+use OriNette\DI\Definitions\DefinitionsLoader;
 use Orisai\Exceptions\Logic\InvalidArgument;
 use Orisai\Exceptions\Message;
 use stdClass;
@@ -30,6 +32,12 @@ final class MonologExtension extends CompilerExtension
 				]),
 				Expect::string(),
 			),
+			'handlers' => Expect::arrayOf(
+				Expect::structure([
+					'service' => Expect::anyOf(Expect::string(), Expect::array(), Expect::type(Statement::class)),
+				]),
+				Expect::string(),
+			),
 		]);
 	}
 
@@ -39,7 +47,10 @@ final class MonologExtension extends CompilerExtension
 
 		$builder = $this->getContainerBuilder();
 		$config = $this->config;
+		$loader = new DefinitionsLoader($this->compiler);
 
+		// Setup channels
+		$channelDefinitions = [];
 		$channelsConfig = $config->channels;
 		foreach ($channelsConfig as $channelName => $channelConfig) {
 			$loggerClass = Logger::class;
@@ -57,7 +68,7 @@ final class MonologExtension extends CompilerExtension
 					->withMessage($message);
 			}
 
-			$builder->addDefinition($this->prefix("channel.$channelName"))
+			$channelDefinitions[] = $builder->addDefinition($this->prefix("channel.$channelName"))
 				->setFactory(
 					is_string($autowired) ? $autowired : $loggerClass,
 					[
@@ -65,6 +76,21 @@ final class MonologExtension extends CompilerExtension
 					],
 				)
 				->setAutowired($autowired);
+		}
+
+		// Setup handlers
+		$handlerDefinitions = [];
+		$handlersConfig = $config->handlers;
+		foreach ($handlersConfig as $handlerName => $handlerConfig) {
+			$handlerDefinitions[] = $loader->loadDefinitionFromConfig(
+				$handlerConfig->service,
+				$this->prefix("handler.$handlerName"),
+			);
+		}
+
+		// Add handlers to channels
+		foreach ($channelDefinitions as $channelDefinition) {
+			$channelDefinition->addSetup('setHandlers', [$handlerDefinitions]);
 		}
 	}
 

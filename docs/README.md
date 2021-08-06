@@ -26,4 +26,18 @@ monolog:
 			# Not autowired by default
 			# true | false | class-string<Monolog\Logger>
 			autowired: true
+
+	# Handlers register to all channels
+	# - unless channel specifies allowed/forbidden handlers
+	handlers:
+
+		# Handler name + minimal config
+		<h1>:
+			service: @h1Service
+
+		# Handler name + full config
+		<h2>:
+
+			# Handler service
+			service: @h2Service
 ```

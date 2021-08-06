@@ -1,0 +1,13 @@
+extensions:
+	monolog: OriNette\Monolog\DI\MonologExtension
+
+monolog:
+	channels:
+		ch_foo: []
+		ch_bar: []
+
+	handlers:
+		h_a:
+			service: Monolog\Handler\TestHandler
+		h_b:
+			service: Monolog\Handler\TestHandler

@@ -40,4 +40,10 @@ monolog:
 
 			# Handler service
 			service: @h2Service
+
+	# Processors registered to all channels
+	# - unless channel specifies allowed/forbidden processors
+	# Handlers have to register processors on their own
+	processors:
+		<p1>: @p1Service
 ```

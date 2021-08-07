@@ -5,6 +5,7 @@ namespace Tests\OriNette\Monolog\Unit\DI;
 use Monolog\Handler\HandlerInterface;
 use Monolog\Handler\TestHandler;
 use Monolog\Logger;
+use Monolog\Processor\TagProcessor;
 use Monolog\Test\TestCase;
 use OriNette\DI\Boot\ManualConfigurator;
 use Orisai\Exceptions\Logic\InvalidArgument;
@@ -93,6 +94,34 @@ MSG);
 		self::assertInstanceOf(TestHandler::class, $handlerB);
 
 		self::assertSame([$handlerA, $handlerB], $fooHandlers);
+	}
+
+	public function testProcessorWiring(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/extension.processorWiring.neon');
+
+		$container = $configurator->createContainer();
+
+		$fooChannel = $container->getService('monolog.channel.ch_foo');
+		self::assertInstanceOf(Logger::class, $fooChannel);
+
+		$barChannel = $container->getService('monolog.channel.ch_bar');
+		self::assertInstanceOf(Logger::class, $barChannel);
+
+		$fooProcessors = $fooChannel->getProcessors();
+		self::assertCount(2, $fooProcessors);
+
+		self::assertSame($fooProcessors, $barChannel->getProcessors());
+
+		$processor1 = $container->getService('monolog.processor.p_1');
+		self::assertInstanceOf(TagProcessor::class, $processor1);
+
+		$processor2 = $container->getService('monolog.processor.p_2');
+		self::assertInstanceOf(TagProcessor::class, $processor2);
+
+		self::assertSame([$processor1, $processor2], $fooProcessors);
 	}
 
 }

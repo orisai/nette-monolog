@@ -1,0 +1,11 @@
+extensions:
+	monolog: OriNette\Monolog\DI\MonologExtension
+
+monolog:
+	channels:
+		ch_foo: []
+		ch_bar: []
+
+	processors:
+		p_1: Monolog\Processor\TagProcessor(['p_1'])
+		p_2: Monolog\Processor\TagProcessor(['p_2'])

@@ -11,6 +11,7 @@ use OriNette\DI\Definitions\DefinitionsLoader;
 use Orisai\Exceptions\Logic\InvalidArgument;
 use Orisai\Exceptions\Message;
 use stdClass;
+use function array_reverse;
 use function is_a;
 use function is_string;
 
@@ -36,6 +37,10 @@ final class MonologExtension extends CompilerExtension
 				Expect::structure([
 					'service' => Expect::anyOf(Expect::string(), Expect::array(), Expect::type(Statement::class)),
 				]),
+				Expect::string(),
+			),
+			'processors' => Expect::arrayOf(
+				Expect::anyOf(Expect::string(), Expect::array(), Expect::type(Statement::class)),
 				Expect::string(),
 			),
 		]);
@@ -91,6 +96,24 @@ final class MonologExtension extends CompilerExtension
 		// Add handlers to channels
 		foreach ($channelDefinitions as $channelDefinition) {
 			$channelDefinition->addSetup('setHandlers', [$handlerDefinitions]);
+		}
+
+		// Setup channel processors
+		$processorDefinitions = [];
+		$processorsConfig = $config->processors;
+		foreach ($processorsConfig as $processorName => $processorConfig) {
+			$processorDefinitions[] = $loader->loadDefinitionFromConfig(
+				$processorConfig,
+				$this->prefix("processor.$processorName"),
+			);
+		}
+
+		// Add processors to channels
+		$processorDefinitions = array_reverse($processorDefinitions);
+		foreach ($channelDefinitions as $channelDefinition) {
+			foreach ($processorDefinitions as $processorDefinition) {
+				$channelDefinition->addSetup('pushProcessor', [$processorDefinition]);
+			}
 		}
 	}
 

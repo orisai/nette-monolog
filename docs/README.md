@@ -46,4 +46,16 @@ monolog:
 	# Handlers have to register processors on their own
 	processors:
 		<p1>: @p1Service
+
+	# Bridges to other loggers / error handlers
+	bridge:
+		# Log from Tracy to Monolog channels
+		# array<string>
+		fromTracy: [<ch1>, <ch2>] # Log from Tracy to <ch1> and <ch2>
+
+		# Log from Monolog channels to Tracy
+		# true | false (disabled by default)
+		# When enabled handler 'tracy' is added and can be configured
+		# - skip the 'service' key, it's preconfigured
+		toTracy: true
 ```

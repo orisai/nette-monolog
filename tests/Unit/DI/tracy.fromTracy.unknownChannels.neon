@@ -1,0 +1,10 @@
+extensions:
+	monolog: OriNette\Monolog\DI\MonologExtension
+	tracy: Tracy\Bridges\Nette\TracyExtension
+
+monolog:
+	channels:
+		ch1: []
+
+	bridge:
+		fromTracy: ['ch1', 'unknown1', 'unknown2', 'unknown2']

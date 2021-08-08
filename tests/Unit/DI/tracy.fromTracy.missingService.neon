@@ -1,0 +1,9 @@
+extensions:
+	monolog: OriNette\Monolog\DI\MonologExtension
+
+monolog:
+	channels:
+		ch1: []
+
+	bridge:
+		fromTracy: ['ch1']

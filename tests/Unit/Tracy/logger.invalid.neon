@@ -1,0 +1,8 @@
+services:
+	logger.one: stdClass
+
+	psrToTracyLogger:
+		factory: OriNette\Monolog\Tracy\LazyTracyToPsrLogger
+		arguments:
+			serviceMap:
+				- logger.one

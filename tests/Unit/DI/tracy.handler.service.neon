@@ -1,0 +1,8 @@
+extensions:
+	monolog: OriNette\Monolog\DI\MonologExtension
+	tracy: Tracy\Bridges\Nette\TracyExtension
+
+monolog:
+	handlers:
+		tracy:
+			service: foo

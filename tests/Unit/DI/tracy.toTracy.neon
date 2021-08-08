@@ -1,0 +1,20 @@
+di:
+	export:
+		# Ensures reference to service by type resolves to geting service by name
+		types: false
+
+extensions:
+	di: Nette\DI\Extensions\DIExtension
+	monolog: OriNette\Monolog\DI\MonologExtension
+	tracy: Tracy\Bridges\Nette\TracyExtension
+
+monolog:
+	channels:
+		ch1:
+			autowired: true
+
+	bridge:
+		toTracy: true
+
+services:
+	tracy.logger: Tests\OriNette\Monolog\Doubles\TracyTestLogger

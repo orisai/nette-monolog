@@ -1,0 +1,6 @@
+extensions:
+	monolog: OriNette\Monolog\DI\MonologExtension
+
+monolog:
+	bridge:
+		toTracy: true

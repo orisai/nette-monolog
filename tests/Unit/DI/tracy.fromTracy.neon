@@ -1,0 +1,17 @@
+extensions:
+	monolog: OriNette\Monolog\DI\MonologExtension
+	tracy: Tracy\Bridges\Nette\TracyExtension
+
+monolog:
+	channels:
+		ch1:
+			autowired: true
+		ch2: []
+		ch3: []
+
+	handlers:
+		test:
+			service: Monolog\Handler\TestHandler
+
+	bridge:
+		fromTracy: ['ch1', 'ch3']

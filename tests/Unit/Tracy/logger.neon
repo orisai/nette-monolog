@@ -1,0 +1,10 @@
+services:
+	logger.one: Psr\Log\Test\TestLogger
+	logger.two: Psr\Log\Test\TestLogger
+
+	psrToTracyLogger:
+		factory: OriNette\Monolog\Tracy\LazyTracyToPsrLogger
+		arguments:
+			serviceMap:
+				- logger.one
+				- logger.two

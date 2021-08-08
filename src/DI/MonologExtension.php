@@ -53,8 +53,9 @@ final class MonologExtension extends CompilerExtension
 			),
 			'handlers' => Expect::arrayOf(
 				Expect::structure([
+					'enabled' => Expect::bool(true),
 					'service' => Expect::anyOf(Expect::string(), Expect::array(), Expect::type(Statement::class)),
-				])->otherItems(), // TODO - temporary workaround
+				]),
 				Expect::string(),
 			),
 			'processors' => Expect::arrayOf(
@@ -76,17 +77,17 @@ final class MonologExtension extends CompilerExtension
 	 */
 	private function configureTracyHandler($value)
 	{
-		if (is_array($value['handlers']['tracy'] ?? [])) {
-			if (isset($value['handlers']['tracy']['service'])) {
-				$message = Message::create()
-					->withContext("Trying to configure '$this->name > handlers > tracy > service'.")
-					->withProblem('This options is reserved and cannot be changed.')
-					->withSolution('Remove the option or choose different name for your handler.');
+		if (isset($value['handlers']['tracy']['service'])) {
+			$message = Message::create()
+				->withContext("Trying to configure '$this->name > handlers > tracy > service'.")
+				->withProblem('This options is reserved and cannot be changed.')
+				->withSolution('Remove the option or choose different name for your handler.');
 
-				throw InvalidArgument::create()
-					->withMessage($message);
-			}
+			throw InvalidArgument::create()
+				->withMessage($message);
+		}
 
+		if (isset($value['handlers']['tracy']) && is_array($value['handlers']['tracy'])) {
 			$value['handlers']['tracy']['service'] = '_validation_bypass_';
 		}
 
@@ -138,6 +139,10 @@ final class MonologExtension extends CompilerExtension
 		// - register handlers as services
 		$handlerDefinitions = [];
 		foreach ($config->handlers as $handlerName => $handlerConfig) {
+			if ($handlerConfig->enabled !== true) {
+				continue;
+			}
+
 			$handlerDefinitions[] = $loader->loadDefinitionFromConfig(
 				$handlerConfig->service,
 				$this->prefix("handler.$handlerName"),
@@ -203,6 +208,12 @@ final class MonologExtension extends CompilerExtension
 		$tracyAdapter = new Statement(TracyToPsrLoggerAdapter::class, [
 			Reference::fromType(ILogger::class),
 		]);
+
+		if (!isset($config->handlers['tracy'])) {
+			$config->handlers['tracy'] = (object) [
+				'enabled' => true,
+			];
+		}
 
 		$config->handlers['tracy']->service = new Statement(PsrHandler::class, [
 			$tracyAdapter,

@@ -11,3 +11,6 @@ monolog:
 			service: Monolog\Handler\TestHandler
 		h_b:
 			service: Monolog\Handler\TestHandler
+		h_c:
+			enabled: false
+			service: Monolog\Handler\TestHandler

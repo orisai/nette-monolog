@@ -41,6 +41,11 @@ monolog:
 			# Handler service
 			service: @h2Service
 
+			# Enable handler?
+			# Enabled by default
+			# true | false
+			enabled: %debugMode%
+
 	# Processors registered to all channels
 	# - unless channel specifies allowed/forbidden processors
 	# Handlers have to register processors on their own

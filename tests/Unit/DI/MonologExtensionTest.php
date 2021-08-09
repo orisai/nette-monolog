@@ -2,6 +2,7 @@
 
 namespace Tests\OriNette\Monolog\Unit\DI;
 
+use Generator;
 use Monolog\Handler\HandlerInterface;
 use Monolog\Handler\TestHandler;
 use Monolog\Logger;
@@ -14,6 +15,7 @@ use Orisai\Exceptions\Logic\InvalidArgument;
 use Orisai\Exceptions\Logic\InvalidState;
 use Psr\Log\LoggerInterface;
 use Tests\OriNette\Monolog\Doubles\BazLogger;
+use Tests\OriNette\Monolog\Doubles\SimpleTestHandler;
 use Tests\OriNette\Monolog\Doubles\TracyTestLogger;
 use Tracy\Debugger;
 use function array_column;
@@ -160,6 +162,191 @@ Problem: This option is reserved for Tracy handler and can be configured only
          when 'monolog > bridge > toTracy' is enabled.
 Solution: Set 'toTracy' option to `true` or remove Tracy handler configuration.
 MSG);
+
+		$configurator->createContainer();
+	}
+
+	/**
+	 * @param array<mixed> $handlerRecords
+	 *
+	 * @dataProvider provideLogLevels
+	 */
+	public function testLogLevels(
+		bool $levelDebug,
+		string $configFile,
+		array $handlerRecords
+	): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig($configFile);
+		$configurator->addStaticParameters([
+			'levelDebug' => $levelDebug,
+		]);
+
+		$container = $configurator->createContainer();
+
+		$logger = $container->getService('monolog.channel.ch_1');
+		self::assertInstanceOf(LoggerInterface::class, $logger);
+
+		$logger->debug('debug');
+		$logger->info('info');
+		$logger->notice('notice');
+		$logger->warning('warning');
+		$logger->error('error');
+		$logger->critical('critical');
+		$logger->alert('alert');
+		$logger->emergency('emergency');
+
+		$handler = $container->getService('monolog.handler.h_a');
+		self::assertInstanceOf(TestHandler::class, $handler);
+
+		$filterRecords = static function (array $records): array {
+			$filtered = [];
+			foreach ($records as $record) {
+				$filtered[] = [
+					$record['level_name'],
+					$record['message'],
+				];
+			}
+
+			return $filtered;
+		};
+
+		self::assertSame(
+			$handlerRecords,
+			$filterRecords($handler->getRecords()),
+		);
+	}
+
+	/**
+	 * @return Generator<array<mixed>>
+	 */
+	public function provideLogLevels(): Generator
+	{
+		$debugMessages = [
+			['DEBUG', 'debug'],
+			['INFO', 'info'],
+			['NOTICE', 'notice'],
+			['WARNING', 'warning'],
+			['ERROR', 'error'],
+			['CRITICAL', 'critical'],
+			['ALERT', 'alert'],
+			['EMERGENCY', 'emergency'],
+		];
+
+		yield [
+			true,
+			__DIR__ . '/logLevels.default.neon',
+			$debugMessages,
+		];
+
+		$warningMessages = [
+			['WARNING', 'warning'],
+			['ERROR', 'error'],
+			['CRITICAL', 'critical'],
+			['ALERT', 'alert'],
+			['EMERGENCY', 'emergency'],
+		];
+
+		yield [
+			false,
+			__DIR__ . '/logLevels.default.neon',
+			$warningMessages,
+		];
+
+		$alertMessages = [
+			['ALERT', 'alert'],
+			['EMERGENCY', 'emergency'],
+		];
+
+		$emergencyMessages = [
+			['EMERGENCY', 'emergency'],
+		];
+
+		yield [
+			true,
+			__DIR__ . '/logLevels.global.neon',
+			$alertMessages,
+		];
+
+		yield [
+			false,
+			__DIR__ . '/logLevels.global.neon',
+			$emergencyMessages,
+		];
+
+		yield [
+			true,
+			__DIR__ . '/logLevels.local.neon',
+			$emergencyMessages,
+		];
+
+		yield [
+			false,
+			__DIR__ . '/logLevels.local.neon',
+			$alertMessages,
+		];
+
+		yield [
+			false,
+			__DIR__ . '/logLevels.local.withReference.neon',
+			$alertMessages,
+		];
+	}
+
+	/**
+	 * Default level is set to emergency only, but handler cannot use that option and logs anything from debug
+	 */
+	public function testLogLevelsSkippedHandler(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/logLevels.skippedHandler.neon');
+
+		$container = $configurator->createContainer();
+
+		$logger = $container->getService('monolog.channel.ch_1');
+		self::assertInstanceOf(LoggerInterface::class, $logger);
+
+		$logger->debug('debug');
+		$logger->emergency('emergency');
+
+		$handler = $container->getService('monolog.handler.h_a');
+		self::assertInstanceOf(SimpleTestHandler::class, $handler);
+
+		$filterRecords = static function (array $records): array {
+			$filtered = [];
+			foreach ($records as $record) {
+				$filtered[] = [
+					$record['level_name'],
+					$record['message'],
+				];
+			}
+
+			return $filtered;
+		};
+
+		self::assertSame(
+			[
+				['DEBUG', 'debug'],
+				['EMERGENCY', 'emergency'],
+			],
+			$filterRecords($handler->getRecords()),
+		);
+	}
+
+	public function testLogLevelsInvalidHandler(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/logLevels.invalidHandler.neon');
+
+		$this->expectException(InvalidState::class);
+		$this->expectExceptionMessage(
+			"'monolog > handlers > h_a > service' either does not implement AbstractHandler or "
+				. 'is not ServiceDefinition or definition does not contain type or cannot be resolved.',
+		);
 
 		$configurator->createContainer();
 	}

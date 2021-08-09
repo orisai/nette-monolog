@@ -1,0 +1,14 @@
+extensions:
+	monolog: OriNette\Monolog\DI\MonologExtension
+
+monolog:
+	debug: true
+
+	channels:
+		ch_1: []
+
+	handlers:
+		h_a:
+			service: Tests\OriNette\Monolog\Doubles\SimpleTestHandler(debug)
+			level:
+				production: emergency

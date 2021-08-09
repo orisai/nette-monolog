@@ -2,6 +2,7 @@
 
 namespace OriNette\Monolog\DI;
 
+use Monolog\Handler\AbstractHandler;
 use Monolog\Handler\PsrHandler;
 use Monolog\Logger;
 use Nette\DI\CompilerExtension;
@@ -10,6 +11,7 @@ use Nette\DI\Definitions\Definition;
 use Nette\DI\Definitions\Reference;
 use Nette\DI\Definitions\ServiceDefinition;
 use Nette\DI\Definitions\Statement;
+use Nette\DI\MissingServiceException;
 use Nette\Schema\Expect;
 use Nette\Schema\Schema;
 use OriNette\DI\Definitions\DefinitionsLoader;
@@ -17,6 +19,7 @@ use OriNette\Monolog\Tracy\LazyTracyToPsrLogger;
 use Orisai\Exceptions\Logic\InvalidArgument;
 use Orisai\Exceptions\Logic\InvalidState;
 use Orisai\Exceptions\Message;
+use Psr\Log\LogLevel;
 use stdClass;
 use Tracy\Bridges\Psr\TracyToPsrLoggerAdapter;
 use Tracy\Debugger;
@@ -36,12 +39,31 @@ use function is_string;
 final class MonologExtension extends CompilerExtension
 {
 
+	private const LOG_LEVELS = [
+		LogLevel::DEBUG,
+		LogLevel::INFO,
+		LogLevel::NOTICE,
+		LogLevel::WARNING,
+		LogLevel::ERROR,
+		LogLevel::CRITICAL,
+		LogLevel::ALERT,
+		LogLevel::EMERGENCY,
+	];
+
 	/** @var array<ServiceDefinition> */
 	private array $channelDefinitions;
+
+	/** @var array<Definition|Reference> */
+	private array $handlerDefinitions;
 
 	public function getConfigSchema(): Schema
 	{
 		return Expect::structure([
+			'debug' => Expect::bool()->required(),
+			'level' => Expect::structure([
+				'debug' => Expect::anyOf(...self::LOG_LEVELS)->default(LogLevel::DEBUG),
+				'production' => Expect::anyOf(...self::LOG_LEVELS)->default(LogLevel::WARNING),
+			]),
 			'channels' => Expect::arrayOf(
 				Expect::structure([
 					'autowired' => Expect::anyOf(
@@ -55,6 +77,10 @@ final class MonologExtension extends CompilerExtension
 				Expect::structure([
 					'enabled' => Expect::bool(true),
 					'service' => Expect::anyOf(Expect::string(), Expect::array(), Expect::type(Statement::class)),
+					'level' => Expect::structure([
+						'debug' => Expect::anyOf(null, ...self::LOG_LEVELS),
+						'production' => Expect::anyOf(null, ...self::LOG_LEVELS),
+					]),
 				]),
 				Expect::string(),
 			),
@@ -143,11 +169,13 @@ final class MonologExtension extends CompilerExtension
 				continue;
 			}
 
-			$handlerDefinitions[] = $loader->loadDefinitionFromConfig(
+			$handlerDefinitions[$handlerName] = $loader->loadDefinitionFromConfig(
 				$handlerConfig->service,
 				$this->prefix("handler.$handlerName"),
 			);
 		}
+
+		$this->handlerDefinitions = $handlerDefinitions;
 
 		// Add handlers to channels
 		foreach ($channelDefinitions as $channelDefinition) {
@@ -180,9 +208,51 @@ final class MonologExtension extends CompilerExtension
 		$builder = $this->getContainerBuilder();
 		$config = $this->config;
 
+		$this->configureHandlers($config);
+
 		// Tracy may not be available in loadConfiguration(), depending on extension order
 		$this->registerFromTracyBridge($this->channelDefinitions, $config, $builder);
 		$this->checkTracyHandlerRequiredService($config, $builder);
+	}
+
+	private function configureHandlers(stdClass $config): void
+	{
+		$defaultLevel = $config->debug === false
+			? $config->level->production
+			: $config->level->debug;
+
+		foreach ($this->handlerDefinitions as $name => $definition) {
+			$handlerConfig = $config->handlers[$name];
+
+			$handlerDebugLevel = $handlerConfig->level->debug;
+			$handlerProductionLevel = $handlerConfig->level->production;
+
+			if ($definition instanceof Reference) {
+				$definition = $this->tryResolveReference($definition);
+			}
+
+			if (
+				!$definition instanceof ServiceDefinition
+				|| ($type = $definition->getType()) === null
+				|| !is_a($type, AbstractHandler::class, true)
+			) {
+				if ($handlerDebugLevel === null && $handlerProductionLevel === null) {
+					continue;
+				}
+
+				throw InvalidState::create()
+					->withMessage(
+						"'$this->name > handlers > $name > service' either does not implement AbstractHandler "
+							. 'or is not ServiceDefinition or definition does not contain type or cannot be resolved.',
+					);
+			}
+
+			$handlerLevel = $config->debug === false
+				? $handlerProductionLevel
+				: $handlerDebugLevel;
+
+			$definition->addSetup('setLevel', [$handlerLevel ?? $defaultLevel]);
+		}
 	}
 
 	private function processTracyHandlerConfig(stdClass $config): stdClass
@@ -212,6 +282,10 @@ final class MonologExtension extends CompilerExtension
 		if (!isset($config->handlers['tracy'])) {
 			$config->handlers['tracy'] = (object) [
 				'enabled' => true,
+				'level' => (object) [
+					'debug' => null,
+					'production' => null,
+				],
 			];
 		}
 
@@ -295,6 +369,26 @@ final class MonologExtension extends CompilerExtension
 
 		throw InvalidState::create()
 			->withMessage($message);
+	}
+
+	/**
+	 * @return Reference|Definition
+	 */
+	private function tryResolveReference(Reference $reference)
+	{
+		$builder = $this->getContainerBuilder();
+		$value = $reference->getValue();
+
+		// Self reference should be impossible
+		assert(!$reference->isSelf());
+
+		try {
+			return $reference->isType()
+				? $builder->getDefinitionByType($value)
+				: $builder->getDefinition($value);
+		} catch (MissingServiceException $exception) {
+			return $reference;
+		}
 	}
 
 	/**

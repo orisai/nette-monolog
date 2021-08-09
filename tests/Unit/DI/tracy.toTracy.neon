@@ -9,6 +9,8 @@ extensions:
 	tracy: Tracy\Bridges\Nette\TracyExtension
 
 monolog:
+	debug: true
+
 	channels:
 		ch1:
 			autowired: true

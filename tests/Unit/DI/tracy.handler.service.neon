@@ -3,6 +3,8 @@ extensions:
 	tracy: Tracy\Bridges\Nette\TracyExtension
 
 monolog:
+	debug: true
+
 	handlers:
 		tracy:
 			service: foo

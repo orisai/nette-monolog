@@ -12,6 +12,21 @@ extensions:
 
 monolog:
 
+	# Affects whether level > debug or level > production is used
+	# - used for both root and handler `level` option
+	# true | false
+	debug: %debugMode%
+
+	# Default log level
+	# Minimal level of message handler should handle
+	# Any of Psr\Log\LogLevel::*
+	# Warning: Works only with handlers which are AbstractHandler subclass, others are ignored
+	level:
+		# With debug mode enabled
+		debug: debug
+		# Without debug mode enabled
+		production: warning
+
 	# Individual channels
 	# Each is registered as a service
 	channels:
@@ -45,6 +60,15 @@ monolog:
 			# Enabled by default
 			# true | false
 			enabled: %debugMode%
+
+			# Minimal level of message handler should handle
+			# Requires handler to be AbstractHandler subclass
+			# Any of Psr\Log\LogLevel::*
+			level:
+				# With debug mode enabled
+				debug: debug
+				# Without debug mode enabled
+				production: warning
 
 	# Processors registered to all channels
 	# - unless channel specifies allowed/forbidden processors

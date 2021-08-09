@@ -2,5 +2,7 @@ extensions:
 	monolog: OriNette\Monolog\DI\MonologExtension
 
 monolog:
+	debug: true
+
 	bridge:
 		toTracy: true

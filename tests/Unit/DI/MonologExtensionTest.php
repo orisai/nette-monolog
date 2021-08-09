@@ -174,7 +174,8 @@ MSG);
 	public function testLogLevels(
 		bool $levelDebug,
 		string $configFile,
-		array $handlerRecords
+		array $handlerRecords,
+		?string $handlerServiceName = null
 	): void
 	{
 		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
@@ -198,7 +199,7 @@ MSG);
 		$logger->alert('alert');
 		$logger->emergency('emergency');
 
-		$handler = $container->getService('monolog.handler.h_a');
+		$handler = $container->getService($handlerServiceName ?? 'monolog.handler.h_a');
 		self::assertInstanceOf(TestHandler::class, $handler);
 
 		$filterRecords = static function (array $records): array {
@@ -293,6 +294,13 @@ MSG);
 			__DIR__ . '/logLevels.local.withReference.neon',
 			$alertMessages,
 		];
+
+		yield [
+			false,
+			__DIR__ . '/logLevels.local.withReferenceType.neon',
+			$alertMessages,
+			'h_a',
+		];
 	}
 
 	/**
@@ -314,6 +322,47 @@ MSG);
 
 		$handler = $container->getService('monolog.handler.h_a');
 		self::assertInstanceOf(SimpleTestHandler::class, $handler);
+
+		$filterRecords = static function (array $records): array {
+			$filtered = [];
+			foreach ($records as $record) {
+				$filtered[] = [
+					$record['level_name'],
+					$record['message'],
+				];
+			}
+
+			return $filtered;
+		};
+
+		self::assertSame(
+			[
+				['DEBUG', 'debug'],
+				['EMERGENCY', 'emergency'],
+			],
+			$filterRecords($handler->getRecords()),
+		);
+	}
+
+	/**
+	 * Reference cannot be resolved and so is handler priority not set
+	 */
+	public function testLogLevelsUnresolvableReference(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/logLevels.unresolvableReference.neon');
+
+		$container = $configurator->createContainer();
+
+		$logger = $container->getService('monolog.channel.ch_1');
+		self::assertInstanceOf(LoggerInterface::class, $logger);
+
+		$logger->debug('debug');
+		$logger->emergency('emergency');
+
+		$handler = $container->getService('h_a');
+		self::assertInstanceOf(TestHandler::class, $handler);
 
 		$filterRecords = static function (array $records): array {
 			$filtered = [];

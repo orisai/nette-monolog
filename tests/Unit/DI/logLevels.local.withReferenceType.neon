@@ -1,0 +1,22 @@
+extensions:
+	monolog: OriNette\Monolog\DI\MonologExtension
+
+monolog:
+	debug: %levelDebug%
+
+	level:
+		debug: alert
+		production: emergency
+
+	channels:
+		ch_1: []
+
+	handlers:
+		h_a:
+			service: @Monolog\Handler\TestHandler
+			level:
+				debug: emergency
+				production: alert
+
+services:
+	h_a: Monolog\Handler\TestHandler

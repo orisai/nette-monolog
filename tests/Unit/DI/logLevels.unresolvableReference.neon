@@ -1,0 +1,16 @@
+extensions:
+	monolog: OriNette\Monolog\DI\MonologExtension
+	- Tests\OriNette\Monolog\Doubles\TestHandlerExtension
+
+monolog:
+	debug: true
+
+	level:
+		debug: emergency
+
+	channels:
+		ch_1: []
+
+	handlers:
+		h_a:
+			service: @Monolog\Handler\TestHandler

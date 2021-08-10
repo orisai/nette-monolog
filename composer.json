@@ -25,7 +25,8 @@
 		"nette/di": "^3.0.6",
 		"orisai/exceptions": "^1.1.0",
 		"orisai/nette-di": "^1.0.0",
-		"psr/log": "^1.1.0"
+		"psr/log": "^1.1.0",
+		"symfony/http-client": "^5.3.0"
 	},
 	"require-dev": {
 		"brianium/paratest": "^6.3.0",

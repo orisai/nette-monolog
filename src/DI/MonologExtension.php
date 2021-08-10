@@ -95,31 +95,6 @@ final class MonologExtension extends CompilerExtension
 		])->before(fn ($value) => $this->configureTracyHandler($value));
 	}
 
-	/**
-	 * Preconfigure Tracy handler with placeholder service so user don't have to configure it when bridge is enabled
-	 *
-	 * @param mixed $value
-	 * @return mixed
-	 */
-	private function configureTracyHandler($value)
-	{
-		if (isset($value['handlers']['tracy']['service'])) {
-			$message = Message::create()
-				->withContext("Trying to configure '$this->name > handlers > tracy > service'.")
-				->withProblem('This options is reserved and cannot be changed.')
-				->withSolution('Remove the option or choose different name for your handler.');
-
-			throw InvalidArgument::create()
-				->withMessage($message);
-		}
-
-		if (isset($value['handlers']['tracy']) && is_array($value['handlers']['tracy'])) {
-			$value['handlers']['tracy']['service'] = '_validation_bypass_';
-		}
-
-		return $value;
-	}
-
 	public function loadConfiguration(): void
 	{
 		parent::loadConfiguration();
@@ -128,7 +103,33 @@ final class MonologExtension extends CompilerExtension
 		$config = $this->config;
 		$loader = new DefinitionsLoader($this->compiler);
 
-		// Setup channels
+		$channelDefinitions = $this->registerChannels($config, $builder);
+
+		$config = $this->processTracyHandlerConfig($config);
+
+		$this->registerHandlers($channelDefinitions, $config, $loader);
+		$this->registerProcessors($channelDefinitions, $config, $loader);
+	}
+
+	public function beforeCompile(): void
+	{
+		parent::beforeCompile();
+
+		$builder = $this->getContainerBuilder();
+		$config = $this->config;
+
+		$this->configureHandlers($config);
+
+		// Tracy may not be available in loadConfiguration(), depending on extension order
+		$this->registerFromTracyBridge($this->channelDefinitions, $config, $builder);
+		$this->checkTracyHandlerRequiredService($config, $builder);
+	}
+
+	/**
+	 * @return array<ServiceDefinition>
+	 */
+	private function registerChannels(stdClass $config, ContainerBuilder $builder): array
+	{
 		$channelDefinitions = [];
 		foreach ($config->channels as $channelName => $channelConfig) {
 			$loggerClass = Logger::class;
@@ -158,11 +159,14 @@ final class MonologExtension extends CompilerExtension
 
 		$this->channelDefinitions = $channelDefinitions;
 
-		// Setup handlers
-		// - process Tracy config
-		$config = $this->processTracyHandlerConfig($config);
+		return $channelDefinitions;
+	}
 
-		// - register handlers as services
+	/**
+	 * @param array<ServiceDefinition> $channelDefinitions
+	 */
+	private function registerHandlers(array $channelDefinitions, stdClass $config, DefinitionsLoader $loader): void
+	{
 		$handlerDefinitions = [];
 		foreach ($config->handlers as $handlerName => $handlerConfig) {
 			if ($handlerConfig->enabled !== true) {
@@ -177,42 +181,9 @@ final class MonologExtension extends CompilerExtension
 
 		$this->handlerDefinitions = $handlerDefinitions;
 
-		// Add handlers to channels
 		foreach ($channelDefinitions as $channelDefinition) {
 			$channelDefinition->addSetup('setHandlers', [$handlerDefinitions]);
 		}
-
-		// Setup channel processors
-		$processorDefinitions = [];
-		$processorsConfig = $config->processors;
-		foreach ($processorsConfig as $processorName => $processorConfig) {
-			$processorDefinitions[] = $loader->loadDefinitionFromConfig(
-				$processorConfig,
-				$this->prefix("processor.$processorName"),
-			);
-		}
-
-		// Add processors to channels
-		$processorDefinitions = array_reverse($processorDefinitions);
-		foreach ($channelDefinitions as $channelDefinition) {
-			foreach ($processorDefinitions as $processorDefinition) {
-				$channelDefinition->addSetup('pushProcessor', [$processorDefinition]);
-			}
-		}
-	}
-
-	public function beforeCompile(): void
-	{
-		parent::beforeCompile();
-
-		$builder = $this->getContainerBuilder();
-		$config = $this->config;
-
-		$this->configureHandlers($config);
-
-		// Tracy may not be available in loadConfiguration(), depending on extension order
-		$this->registerFromTracyBridge($this->channelDefinitions, $config, $builder);
-		$this->checkTracyHandlerRequiredService($config, $builder);
 	}
 
 	private function configureHandlers(stdClass $config): void
@@ -243,7 +214,7 @@ final class MonologExtension extends CompilerExtension
 				throw InvalidState::create()
 					->withMessage(
 						"'$this->name > handlers > $name > service' either does not implement AbstractHandler "
-							. 'or is not ServiceDefinition or definition does not contain type or cannot be resolved.',
+						. 'or is not ServiceDefinition or definition does not contain type or cannot be resolved.',
 					);
 			}
 
@@ -253,6 +224,52 @@ final class MonologExtension extends CompilerExtension
 
 			$definition->addSetup('setLevel', [$handlerLevel ?? $defaultLevel]);
 		}
+	}
+
+	/**
+	 * @param array<ServiceDefinition> $channelDefinitions
+	 */
+	private function registerProcessors(array $channelDefinitions, stdClass $config, DefinitionsLoader $loader): void
+	{
+		$processorDefinitions = [];
+		foreach ($config->processors as $processorName => $processorConfig) {
+			$processorDefinitions[$processorName] = $loader->loadDefinitionFromConfig(
+				$processorConfig,
+				$this->prefix("processor.$processorName"),
+			);
+		}
+
+		$processorDefinitions = array_reverse($processorDefinitions);
+		foreach ($channelDefinitions as $channelDefinition) {
+			foreach ($processorDefinitions as $processorDefinition) {
+				$channelDefinition->addSetup('pushProcessor', [$processorDefinition]);
+			}
+		}
+	}
+
+	/**
+	 * Preconfigure Tracy handler with placeholder service so user don't have to configure it when bridge is enabled
+	 *
+	 * @param mixed $value
+	 * @return mixed
+	 */
+	private function configureTracyHandler($value)
+	{
+		if (isset($value['handlers']['tracy']['service'])) {
+			$message = Message::create()
+				->withContext("Trying to configure '$this->name > handlers > tracy > service'.")
+				->withProblem('This options is reserved and cannot be changed.')
+				->withSolution('Remove the option or choose different name for your handler.');
+
+			throw InvalidArgument::create()
+				->withMessage($message);
+		}
+
+		if (isset($value['handlers']['tracy']) && is_array($value['handlers']['tracy'])) {
+			$value['handlers']['tracy']['service'] = '_validation_bypass_';
+		}
+
+		return $value;
 	}
 
 	private function processTracyHandlerConfig(stdClass $config): stdClass

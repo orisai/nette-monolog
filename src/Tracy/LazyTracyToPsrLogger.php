@@ -6,7 +6,6 @@ use OriNette\DI\Services\ServiceManager;
 use Psr\Log\LoggerInterface;
 use Tracy\Bridges\Psr\PsrToTracyLoggerAdapter;
 use Tracy\ILogger;
-use function assert;
 
 final class LazyTracyToPsrLogger extends ServiceManager implements ILogger
 {
@@ -36,16 +35,9 @@ final class LazyTracyToPsrLogger extends ServiceManager implements ILogger
 
 		$loggers = [];
 		foreach ($this->getKeys() as $key) {
-			$service = $this->getService($key);
-
-			// Can't happen when iterating over getKeys()
-			assert($service !== null);
-
-			if (!$service instanceof LoggerInterface) {
-				$this->throwInvalidServiceType($key, LoggerInterface::class, $service);
-			}
-
-			$loggers[] = new PsrToTracyLoggerAdapter($service);
+			$loggers[] = new PsrToTracyLoggerAdapter(
+				$this->getTypedServiceOrThrow($key, LoggerInterface::class),
+			);
 		}
 
 		return $this->loggers = $loggers;

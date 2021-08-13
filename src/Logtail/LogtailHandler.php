@@ -6,9 +6,6 @@ use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger;
 use function register_shutdown_function;
 
-/**
- * @phpstan-import-type Record from Logger
- */
 final class LogtailHandler extends AbstractProcessingHandler
 {
 
@@ -16,10 +13,7 @@ final class LogtailHandler extends AbstractProcessingHandler
 
 	private bool $initialized = false;
 
-	/**
-	 * @var array<array<mixed>>
-	 * @phpstan-var array<Record>
-	 */
+	/** @var array<array<mixed>> */
 	private array $records = [];
 
 	/**
@@ -41,6 +35,9 @@ final class LogtailHandler extends AbstractProcessingHandler
 			register_shutdown_function(fn () => $this->close());
 			$this->initialized = true;
 		}
+
+		$record['dt'] = $record['datetime'];
+		unset($record['datetime']);
 
 		$this->records[] = $record;
 	}

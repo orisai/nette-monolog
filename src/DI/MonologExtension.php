@@ -121,8 +121,8 @@ final class MonologExtension extends CompilerExtension
 		$this->configureHandlers($config);
 
 		// Tracy may not be available in loadConfiguration(), depending on extension order
+		$this->registerToTracyBridge($config, $builder);
 		$this->registerFromTracyBridge($this->channelDefinitions, $config, $builder);
-		$this->checkTracyHandlerRequiredService($config, $builder);
 	}
 
 	/**
@@ -292,10 +292,6 @@ final class MonologExtension extends CompilerExtension
 			return $config;
 		}
 
-		$tracyAdapter = new Statement(TracyToPsrLoggerAdapter::class, [
-			Reference::fromType(ILogger::class),
-		]);
-
 		if (!isset($config->handlers['tracy'])) {
 			$config->handlers['tracy'] = (object) [
 				'enabled' => true,
@@ -307,13 +303,13 @@ final class MonologExtension extends CompilerExtension
 		}
 
 		$config->handlers['tracy']->service = new Statement(PsrHandler::class, [
-			$tracyAdapter,
+			new Reference($this->prefix('bridge.psrToTracy')),
 		]);
 
 		return $config;
 	}
 
-	private function checkTracyHandlerRequiredService(stdClass $config, ContainerBuilder $builder): void
+	private function registerToTracyBridge(stdClass $config, ContainerBuilder $builder): void
 	{
 		if ($config->bridge->toTracy === false) {
 			return;
@@ -323,6 +319,14 @@ final class MonologExtension extends CompilerExtension
 		if ($tracyLoggerDefinitionName === null) {
 			$this->throwTracyBridgeRequiresTracyInstalled('toTracy');
 		}
+
+		$builder->addDefinition($this->prefix('bridge.psrToTracy'))
+			->setFactory(
+				TracyToPsrLoggerAdapter::class,
+				[
+					$builder->getDefinition($tracyLoggerDefinitionName),
+				],
+			)->setAutowired(false);
 	}
 
 	/**

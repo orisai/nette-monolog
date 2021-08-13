@@ -9,8 +9,12 @@ monolog:
 		ch1:
 			autowired: true
 
+	handlers:
+		h_a:
+			service: Monolog\Handler\TestHandler
+
 	bridge:
 		toTracy: true
 
-services:
-	tracy.logger: Tests\OriNette\Monolog\Doubles\TracyTestLogger
+		fromTracy:
+			- ch1

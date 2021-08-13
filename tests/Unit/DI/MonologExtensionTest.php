@@ -18,6 +18,7 @@ use Tests\OriNette\Monolog\Doubles\BazLogger;
 use Tests\OriNette\Monolog\Doubles\SimpleTestHandler;
 use Tests\OriNette\Monolog\Doubles\TracyTestLogger;
 use Tracy\Debugger;
+use Tracy\ILogger;
 use function array_column;
 use function dirname;
 
@@ -400,6 +401,9 @@ MSG);
 		$configurator->createContainer();
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 */
 	public function testToTracyBridge(): void
 	{
 		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
@@ -409,18 +413,21 @@ MSG);
 		$container = $configurator->createContainer();
 
 		self::assertFalse($container->isCreated('monolog.handler.tracy'));
+		self::assertFalse($container->isCreated('monolog.bridge.psrToTracy'));
 		self::assertFalse($container->isCreated('tracy.logger'));
 
 		$logger = $container->getService('monolog.channel.ch1');
 		self::assertInstanceOf(LoggerInterface::class, $logger);
 
 		self::assertTrue($container->isCreated('monolog.handler.tracy'));
+		self::assertTrue($container->isCreated('monolog.bridge.psrToTracy'));
 		self::assertTrue($container->isCreated('tracy.logger'));
 
 		$logger->notice('test');
 
 		$tracyLogger = $container->getService('tracy.logger');
 		self::assertInstanceOf(TracyTestLogger::class, $tracyLogger);
+		self::assertInstanceOf(TracyTestLogger::class, $container->getByType(ILogger::class));
 
 		self::assertSame(
 			[
@@ -528,6 +535,75 @@ Solution: Ensure Tracy is installed and register as a service or remove the
 MSG);
 
 		$configurator->createContainer();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testTracyBothDirections(): void
+	{
+		$tracyLogger = new TracyTestLogger();
+		Debugger::setLogger($tracyLogger);
+
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/tracy.bothDirections.neon');
+
+		$container = $configurator->createContainer();
+
+		self::assertFalse($container->isCreated('monolog.handler.tracy'));
+		self::assertFalse($container->isCreated('monolog.bridge.psrToTracy'));
+		self::assertTrue($container->isCreated('tracy.logger'));
+
+		$logger = $container->getService('monolog.channel.ch1');
+		self::assertInstanceOf(LoggerInterface::class, $logger);
+
+		self::assertTrue($container->isCreated('monolog.handler.tracy'));
+		self::assertTrue($container->isCreated('monolog.bridge.psrToTracy'));
+
+		$logger->notice('monolog');
+		Debugger::log('tracy', ILogger::ERROR);
+
+		$tracyLogger = $container->getService('tracy.logger');
+		self::assertInstanceOf(TracyTestLogger::class, $tracyLogger);
+		self::assertInstanceOf(LazyTracyToPsrLogger::class, $container->getByType(ILogger::class));
+
+		$handler = $container->getService('monolog.handler.h_a');
+		self::assertInstanceOf(TestHandler::class, $handler);
+
+		self::assertSame(
+			[
+				[
+					'value' => 'monolog',
+					'level' => 'warning',
+				],
+				[
+					'value' => 'tracy',
+					'level' => 'error',
+				],
+			],
+			$tracyLogger->getRecords(),
+		);
+
+		$filterRecords = static function (array $records): array {
+			$filtered = [];
+			foreach ($records as $record) {
+				$filtered[] = [
+					$record['level_name'],
+					$record['message'],
+				];
+			}
+
+			return $filtered;
+		};
+
+		self::assertSame(
+			[
+				['NOTICE', 'monolog'],
+				['ERROR', 'tracy'],
+			],
+			$filterRecords($handler->getRecords()),
+		);
 	}
 
 }

@@ -1,0 +1,14 @@
+extensions:
+	monolog: OriNette\Monolog\DI\MonologExtension
+
+monolog:
+	debug: true
+
+	channels:
+		ch_foo:
+			allowedProcessors: [p_1]
+			forbiddenProcessors: [p_1]
+
+	processors:
+		p_1: Monolog\Processor\TagProcessor(['p_1'])
+		p_2: Monolog\Processor\TagProcessor(['p_2'])

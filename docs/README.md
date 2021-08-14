@@ -48,6 +48,12 @@ monolog:
 			allowedHandlers: [<h1>]
 			forbiddenHandlers: [<h1>]
 
+			# Allowed/forbidden processors
+			# - unless specified all are used
+			# - only one of these options can be used
+			allowedProcessors: [<p1>]
+			forbiddenProcessors: [<p1>]
+
 	# Handlers register to all channels
 	# - unless channel specifies allowed/forbidden handlers
 	handlers:

@@ -73,9 +73,14 @@ final class MonologExtension extends CompilerExtension
 					)->default(false),
 					'allowedHandlers' => Expect::arrayOf(Expect::string()),
 					'forbiddenHandlers' => Expect::arrayOf(Expect::string()),
+					'allowedProcessors' => Expect::arrayOf(Expect::string()),
+					'forbiddenProcessors' => Expect::arrayOf(Expect::string()),
 				])->assert(
 					static fn (stdClass $value): bool => !($value->allowedHandlers !== [] && $value->forbiddenHandlers !== []),
 					'Use only allowedHandlers or forbiddenHandlers, these options are incompatible.',
+				)->assert(
+					static fn (stdClass $value): bool => !($value->allowedProcessors !== [] && $value->forbiddenProcessors !== []),
+					'Use only allowedProcessors or forbiddenProcessors, these options are incompatible.',
 				),
 				Expect::string(),
 			),
@@ -115,7 +120,8 @@ final class MonologExtension extends CompilerExtension
 		$handlerDefinitions = $this->registerHandlers($config, $loader);
 		$this->addHandlersToChannels($channelDefinitions, $handlerDefinitions, $config);
 
-		$this->registerProcessors($channelDefinitions, $config, $loader);
+		$processorDefinitions = $this->registerProcessors($config, $loader);
+		$this->addProcessorsToChannels($channelDefinitions, $processorDefinitions, $config);
 	}
 
 	public function beforeCompile(): void
@@ -194,26 +200,13 @@ final class MonologExtension extends CompilerExtension
 	private function addHandlersToChannels(array $channelDefinitions, array $handlerDefinitions, stdClass $config): void
 	{
 		foreach ($channelDefinitions as $channelName => $channelDefinition) {
-			$filteredHandlerDefinitions = [];
+			$channelConfig = $config->channels[$channelName];
 
-			$allowedHandlers = $config->channels[$channelName]->allowedHandlers;
-			$forbiddenHandlers = $config->channels[$channelName]->forbiddenHandlers;
-
-			if ($allowedHandlers === [] && $forbiddenHandlers === []) {
-				$filteredHandlerDefinitions = $handlerDefinitions;
-			} elseif ($allowedHandlers !== []) {
-				foreach ($handlerDefinitions as $handlerName => $handlerDefinition) {
-					if (in_array($handlerName, $allowedHandlers, true)) {
-						$filteredHandlerDefinitions[$handlerName] = $handlerDefinition;
-					}
-				}
-			} else {
-				foreach ($handlerDefinitions as $handlerName => $handlerDefinition) {
-					if (!in_array($handlerName, $forbiddenHandlers, true)) {
-						$filteredHandlerDefinitions[$handlerName] = $handlerDefinition;
-					}
-				}
-			}
+			$filteredHandlerDefinitions = $this->filterAllowedDefinitions(
+				$handlerDefinitions,
+				$channelConfig->allowedHandlers,
+				$channelConfig->forbiddenHandlers,
+			);
 
 			$channelDefinition->addSetup('setHandlers', [$filteredHandlerDefinitions]);
 		}
@@ -260,9 +253,9 @@ final class MonologExtension extends CompilerExtension
 	}
 
 	/**
-	 * @param array<ServiceDefinition> $channelDefinitions
+	 * @return array<Definition|Reference>
 	 */
-	private function registerProcessors(array $channelDefinitions, stdClass $config, DefinitionsLoader $loader): void
+	private function registerProcessors(stdClass $config, DefinitionsLoader $loader): array
 	{
 		$processorDefinitions = [];
 		foreach ($config->processors as $processorName => $processorConfig) {
@@ -272,9 +265,29 @@ final class MonologExtension extends CompilerExtension
 			);
 		}
 
-		$processorDefinitions = array_reverse($processorDefinitions);
-		foreach ($channelDefinitions as $channelDefinition) {
-			foreach ($processorDefinitions as $processorDefinition) {
+		return array_reverse($processorDefinitions);
+	}
+
+	/**
+	 * @param array<ServiceDefinition> $channelDefinitions
+	 * @param array<Definition|Reference> $processorDefinitions
+	 */
+	private function addProcessorsToChannels(
+		array $channelDefinitions,
+		array $processorDefinitions,
+		stdClass $config
+	): void
+	{
+		foreach ($channelDefinitions as $channelName => $channelDefinition) {
+			$channelConfig = $config->channels[$channelName];
+
+			$filteredProcessorDefinitions = $this->filterAllowedDefinitions(
+				$processorDefinitions,
+				$channelConfig->allowedProcessors,
+				$channelConfig->forbiddenProcessors,
+			);
+
+			foreach ($filteredProcessorDefinitions as $processorDefinition) {
 				$channelDefinition->addSetup('pushProcessor', [$processorDefinition]);
 			}
 		}
@@ -488,6 +501,35 @@ final class MonologExtension extends CompilerExtension
 		}
 
 		return $serviceNamesAndKeys;
+	}
+
+	/**
+	 * @param array<Definition|Reference> $definitions
+	 * @param array<string>               $allowedList
+	 * @param array<string>               $forbiddenList
+	 * @return array<Definition|Reference>
+	 */
+	private function filterAllowedDefinitions(array $definitions, array $allowedList, array $forbiddenList): array
+	{
+		$filteredDefinitions = [];
+
+		if ($allowedList === [] && $forbiddenList === []) {
+			$filteredDefinitions = $definitions;
+		} elseif ($allowedList !== []) {
+			foreach ($definitions as $definitionName => $definition) {
+				if (in_array($definitionName, $allowedList, true)) {
+					$filteredDefinitions[$definitionName] = $definition;
+				}
+			}
+		} else {
+			foreach ($definitions as $definitionName => $definition) {
+				if (!in_array($definitionName, $forbiddenList, true)) {
+					$filteredDefinitions[$definitionName] = $definition;
+				}
+			}
+		}
+
+		return $filteredDefinitions;
 	}
 
 }

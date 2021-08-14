@@ -196,6 +196,67 @@ MSG);
 		self::assertSame([$processor1, $processor2], $fooProcessors);
 	}
 
+	public function testProcessorWiringInvalid(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/processorWiring.invalid.neon');
+
+		$this->expectException(InvalidConfigurationException::class);
+		$this->expectExceptionMessage(
+			"Failed assertion 'Use only allowedProcessors or forbiddenProcessors, these options are incompatible.'"
+			. " for item 'monolog › channels › ch_foo' with value object stdClass.",
+		);
+
+		$configurator->createContainer();
+	}
+
+	public function testProcessorWiringFilterAllowed(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/processorWiring.allowed.neon');
+
+		$container = $configurator->createContainer();
+
+		$channel = $container->getService('monolog.channel.ch_foo');
+		self::assertInstanceOf(Logger::class, $channel);
+
+		$processors = $channel->getProcessors();
+		self::assertCount(1, $processors);
+
+		$processor1 = $container->getService('monolog.processor.p_1');
+		self::assertInstanceOf(TagProcessor::class, $processor1);
+
+		$processor2 = $container->getService('monolog.processor.p_2');
+		self::assertInstanceOf(TagProcessor::class, $processor2);
+
+		self::assertSame([$processor1], $processors);
+	}
+
+	public function testProcessorWiringFilterForbidden(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/processorWiring.forbidden.neon');
+
+		$container = $configurator->createContainer();
+
+		$channel = $container->getService('monolog.channel.ch_foo');
+		self::assertInstanceOf(Logger::class, $channel);
+
+		$processors = $channel->getProcessors();
+		self::assertCount(1, $processors);
+
+		$processor1 = $container->getService('monolog.processor.p_1');
+		self::assertInstanceOf(TagProcessor::class, $processor1);
+
+		$processor2 = $container->getService('monolog.processor.p_2');
+		self::assertInstanceOf(TagProcessor::class, $processor2);
+
+		self::assertSame([$processor2], $processors);
+	}
+
 	public function testTracyHandlerServiceSet(): void
 	{
 		$configurator = new ManualConfigurator(dirname(__DIR__, 3));

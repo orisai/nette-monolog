@@ -71,10 +71,10 @@ final class MonologExtension extends CompilerExtension
 						Expect::bool(),
 						Expect::string(),
 					)->default(false),
-					'allowedHandlers' => Expect::arrayOf(Expect::string()),
-					'forbiddenHandlers' => Expect::arrayOf(Expect::string()),
-					'allowedProcessors' => Expect::arrayOf(Expect::string()),
-					'forbiddenProcessors' => Expect::arrayOf(Expect::string()),
+					'allowedHandlers' => Expect::listOf(Expect::string()),
+					'forbiddenHandlers' => Expect::listOf(Expect::string()),
+					'allowedProcessors' => Expect::listOf(Expect::string()),
+					'forbiddenProcessors' => Expect::listOf(Expect::string()),
 				])->assert(
 					static fn (stdClass $value): bool => !($value->allowedHandlers !== [] && $value->forbiddenHandlers !== []),
 					'Use only allowedHandlers or forbiddenHandlers, these options are incompatible.',
@@ -100,7 +100,7 @@ final class MonologExtension extends CompilerExtension
 				Expect::string(),
 			),
 			'bridge' => Expect::structure([
-				'fromTracy' => Expect::arrayOf(Expect::string()),
+				'fromTracy' => Expect::listOf(Expect::string()),
 				'toTracy' => Expect::bool(false),
 			]),
 		])->before(fn ($value) => $this->configureTracyHandler($value));

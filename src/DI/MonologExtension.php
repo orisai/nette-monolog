@@ -24,6 +24,8 @@ use stdClass;
 use Tracy\Bridges\Psr\TracyToPsrLoggerAdapter;
 use Tracy\Debugger;
 use Tracy\ILogger;
+use function array_diff;
+use function array_keys;
 use function array_reverse;
 use function array_unique;
 use function assert;
@@ -206,6 +208,9 @@ final class MonologExtension extends CompilerExtension
 				$handlerDefinitions,
 				$channelConfig->allowedHandlers,
 				$channelConfig->forbiddenHandlers,
+				"channels > $channelName > allowedHandlers",
+				"channels > $channelName > forbiddenHandlers",
+				'handlers',
 			);
 
 			$channelDefinition->addSetup('setHandlers', [$filteredHandlerDefinitions]);
@@ -285,6 +290,9 @@ final class MonologExtension extends CompilerExtension
 				$processorDefinitions,
 				$channelConfig->allowedProcessors,
 				$channelConfig->forbiddenProcessors,
+				"channels > $channelName > allowedProcessors",
+				"channels > $channelName > forbiddenProcessors",
+				'processors',
 			);
 
 			foreach ($filteredProcessorDefinitions as $processorDefinition) {
@@ -489,15 +497,7 @@ final class MonologExtension extends CompilerExtension
 		}
 
 		if ($missingNames !== []) {
-			$namesInline = implode(', ', $missingNames);
-
-			$message = Message::create()
-				->withContext("Trying to configure '$this->name > $configOption'.")
-				->withProblem("Some of the given $filtered do not exist - '$namesInline'.")
-				->withSolution("Register these $filtered or remove them from configured option.");
-
-			throw InvalidArgument::create()
-				->withMessage($message);
+			$this->throwUnknownFilteredNames($missingNames, $configOption, $filtered);
 		}
 
 		return $serviceNamesAndKeys;
@@ -509,19 +509,44 @@ final class MonologExtension extends CompilerExtension
 	 * @param array<string>               $forbiddenList
 	 * @return array<Definition|Reference>
 	 */
-	private function filterAllowedDefinitions(array $definitions, array $allowedList, array $forbiddenList): array
+	private function filterAllowedDefinitions(
+		array $definitions,
+		array $allowedList,
+		array $forbiddenList,
+		string $configOptionAllowed,
+		string $configOptionForbidden,
+		string $filtered
+	): array
 	{
 		$filteredDefinitions = [];
 
 		if ($allowedList === [] && $forbiddenList === []) {
 			$filteredDefinitions = $definitions;
 		} elseif ($allowedList !== []) {
+			$missingAllowed = array_diff($allowedList, array_keys($definitions));
+			if ($missingAllowed !== []) {
+				$this->throwUnknownFilteredNames(
+					$allowedList,
+					$configOptionAllowed,
+					$filtered,
+				);
+			}
+
 			foreach ($definitions as $definitionName => $definition) {
 				if (in_array($definitionName, $allowedList, true)) {
 					$filteredDefinitions[$definitionName] = $definition;
 				}
 			}
 		} else {
+			$missingForbidden = array_diff($forbiddenList, array_keys($definitions));
+			if ($missingForbidden !== []) {
+				$this->throwUnknownFilteredNames(
+					$forbiddenList,
+					$configOptionForbidden,
+					$filtered,
+				);
+			}
+
 			foreach ($definitions as $definitionName => $definition) {
 				if (!in_array($definitionName, $forbiddenList, true)) {
 					$filteredDefinitions[$definitionName] = $definition;
@@ -530,6 +555,23 @@ final class MonologExtension extends CompilerExtension
 		}
 
 		return $filteredDefinitions;
+	}
+
+	/**
+	 * @param array<string> $missingNames
+	 * @return never
+	 */
+	private function throwUnknownFilteredNames(array $missingNames, string $configOption, string $filtered): void
+	{
+		$namesInline = implode(', ', $missingNames);
+
+		$message = Message::create()
+			->withContext("Trying to configure '$this->name > $configOption'.")
+			->withProblem("Some of the given $filtered do not exist - '$namesInline'.")
+			->withSolution("Register these $filtered or remove them from configured option.");
+
+		throw InvalidArgument::create()
+			->withMessage($message);
 	}
 
 }

@@ -107,17 +107,49 @@ MSG);
 		self::assertSame([$handlerA, $handlerB], $fooHandlers);
 	}
 
-	public function testHandlerWiringInvalid(): void
+	public function testHandlerWiringInvalid1(): void
 	{
 		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
 		$configurator->setDebugMode(true);
-		$configurator->addConfig(__DIR__ . '/handlerWiring.invalid.neon');
+		$configurator->addConfig(__DIR__ . '/handlerWiring.invalid.1.neon');
 
 		$this->expectException(InvalidConfigurationException::class);
 		$this->expectExceptionMessage(
 			"Failed assertion 'Use only allowedHandlers or forbiddenHandlers, these options are incompatible.'"
 			. " for item 'monolog › channels › ch_foo' with value object stdClass.",
 		);
+
+		$configurator->createContainer();
+	}
+
+	public function testHandlerWiringInvalid2(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/handlerWiring.invalid.2.neon');
+
+		$this->expectException(InvalidArgument::class);
+		$this->expectExceptionMessage(<<<'MSG'
+Context: Trying to configure 'monolog > channels > ch_foo > allowedHandlers'.
+Problem: Some of the given handlers do not exist - 'unknown'.
+Solution: Register these handlers or remove them from configured option.
+MSG);
+
+		$configurator->createContainer();
+	}
+
+	public function testHandlerWiringInvalid3(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/handlerWiring.invalid.2.neon');
+
+		$this->expectException(InvalidArgument::class);
+		$this->expectExceptionMessage(<<<'MSG'
+Context: Trying to configure 'monolog > channels > ch_foo > allowedHandlers'.
+Problem: Some of the given handlers do not exist - 'unknown'.
+Solution: Register these handlers or remove them from configured option.
+MSG);
 
 		$configurator->createContainer();
 	}
@@ -196,17 +228,50 @@ MSG);
 		self::assertSame([$processor1, $processor2], $fooProcessors);
 	}
 
-	public function testProcessorWiringInvalid(): void
+	public function testProcessorWiringInvalid1(): void
 	{
 		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
 		$configurator->setDebugMode(true);
-		$configurator->addConfig(__DIR__ . '/processorWiring.invalid.neon');
+		$configurator->addConfig(__DIR__ . '/processorWiring.invalid.1.neon');
 
 		$this->expectException(InvalidConfigurationException::class);
 		$this->expectExceptionMessage(
 			"Failed assertion 'Use only allowedProcessors or forbiddenProcessors, these options are incompatible.'"
 			. " for item 'monolog › channels › ch_foo' with value object stdClass.",
 		);
+
+		$configurator->createContainer();
+	}
+
+	public function testProcessorWiringInvalid2(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/processorWiring.invalid.2.neon');
+
+		$this->expectException(InvalidArgument::class);
+		$this->expectExceptionMessage(<<<'MSG'
+Context: Trying to configure 'monolog > channels > ch_foo > allowedProcessors'.
+Problem: Some of the given processors do not exist - 'unknown'.
+Solution: Register these processors or remove them from configured option.
+MSG);
+
+		$configurator->createContainer();
+	}
+
+	public function testProcessorWiringInvalid3(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/processorWiring.invalid.3.neon');
+
+		$this->expectException(InvalidArgument::class);
+		$this->expectExceptionMessage(<<<'MSG'
+Context: Trying to configure 'monolog > channels > ch_foo >
+         forbiddenProcessors'.
+Problem: Some of the given processors do not exist - 'unknown'.
+Solution: Register these processors or remove them from configured option.
+MSG);
 
 		$configurator->createContainer();
 	}

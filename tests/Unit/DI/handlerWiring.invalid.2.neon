@@ -1,0 +1,9 @@
+extensions:
+	monolog: OriNette\Monolog\DI\MonologExtension
+
+monolog:
+	debug: true
+
+	channels:
+		ch_foo:
+			allowedHandlers: [unknown]

@@ -29,6 +29,7 @@ use function array_unique;
 use function assert;
 use function count;
 use function implode;
+use function in_array;
 use function is_a;
 use function is_array;
 use function is_string;
@@ -70,7 +71,12 @@ final class MonologExtension extends CompilerExtension
 						Expect::bool(),
 						Expect::string(),
 					)->default(false),
-				]),
+					'allowedHandlers' => Expect::arrayOf(Expect::string()),
+					'forbiddenHandlers' => Expect::arrayOf(Expect::string()),
+				])->assert(
+					static fn (stdClass $value): bool => !($value->allowedHandlers !== [] && $value->forbiddenHandlers !== []),
+					'Use only allowedHandlers or forbiddenHandlers, these options are incompatible.',
+				),
 				Expect::string(),
 			),
 			'handlers' => Expect::arrayOf(
@@ -106,8 +112,9 @@ final class MonologExtension extends CompilerExtension
 		$channelDefinitions = $this->registerChannels($config, $builder);
 
 		$config = $this->processTracyHandlerConfig($config);
+		$handlerDefinitions = $this->registerHandlers($config, $loader);
+		$this->addHandlersToChannels($channelDefinitions, $handlerDefinitions, $config);
 
-		$this->registerHandlers($channelDefinitions, $config, $loader);
 		$this->registerProcessors($channelDefinitions, $config, $loader);
 	}
 
@@ -157,15 +164,13 @@ final class MonologExtension extends CompilerExtension
 				->setAutowired($autowired);
 		}
 
-		$this->channelDefinitions = $channelDefinitions;
-
-		return $channelDefinitions;
+		return $this->channelDefinitions = $channelDefinitions;
 	}
 
 	/**
-	 * @param array<ServiceDefinition> $channelDefinitions
+	 * @return array<Definition|Reference>
 	 */
-	private function registerHandlers(array $channelDefinitions, stdClass $config, DefinitionsLoader $loader): void
+	private function registerHandlers(stdClass $config, DefinitionsLoader $loader): array
 	{
 		$handlerDefinitions = [];
 		foreach ($config->handlers as $handlerName => $handlerConfig) {
@@ -179,10 +184,38 @@ final class MonologExtension extends CompilerExtension
 			);
 		}
 
-		$this->handlerDefinitions = $handlerDefinitions;
+		return $this->handlerDefinitions = $handlerDefinitions;
+	}
 
-		foreach ($channelDefinitions as $channelDefinition) {
-			$channelDefinition->addSetup('setHandlers', [$handlerDefinitions]);
+	/**
+	 * @param array<ServiceDefinition> $channelDefinitions
+	 * @param array<Definition|Reference> $handlerDefinitions
+	 */
+	private function addHandlersToChannels(array $channelDefinitions, array $handlerDefinitions, stdClass $config): void
+	{
+		foreach ($channelDefinitions as $channelName => $channelDefinition) {
+			$filteredHandlerDefinitions = [];
+
+			$allowedHandlers = $config->channels[$channelName]->allowedHandlers;
+			$forbiddenHandlers = $config->channels[$channelName]->forbiddenHandlers;
+
+			if ($allowedHandlers === [] && $forbiddenHandlers === []) {
+				$filteredHandlerDefinitions = $handlerDefinitions;
+			} elseif ($allowedHandlers !== []) {
+				foreach ($handlerDefinitions as $handlerName => $handlerDefinition) {
+					if (in_array($handlerName, $allowedHandlers, true)) {
+						$filteredHandlerDefinitions[$handlerName] = $handlerDefinition;
+					}
+				}
+			} else {
+				foreach ($handlerDefinitions as $handlerName => $handlerDefinition) {
+					if (!in_array($handlerName, $forbiddenHandlers, true)) {
+						$filteredHandlerDefinitions[$handlerName] = $handlerDefinition;
+					}
+				}
+			}
+
+			$channelDefinition->addSetup('setHandlers', [$filteredHandlerDefinitions]);
 		}
 	}
 

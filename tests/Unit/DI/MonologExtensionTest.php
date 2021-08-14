@@ -9,6 +9,7 @@ use Monolog\Logger;
 use Monolog\Processor\ProcessorInterface;
 use Monolog\Processor\TagProcessor;
 use Monolog\Test\TestCase;
+use Nette\DI\InvalidConfigurationException;
 use OriNette\DI\Boot\ManualConfigurator;
 use OriNette\Monolog\Tracy\LazyTracyToPsrLogger;
 use Orisai\Exceptions\Logic\InvalidArgument;
@@ -104,6 +105,67 @@ MSG);
 		self::assertInstanceOf(TestHandler::class, $handlerB);
 
 		self::assertSame([$handlerA, $handlerB], $fooHandlers);
+	}
+
+	public function testHandlerWiringInvalid(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/handlerWiring.invalid.neon');
+
+		$this->expectException(InvalidConfigurationException::class);
+		$this->expectExceptionMessage(
+			"Failed assertion 'Use only allowedHandlers or forbiddenHandlers, these options are incompatible.'"
+			. " for item 'monolog › channels › ch_foo' with value object stdClass.",
+		);
+
+		$configurator->createContainer();
+	}
+
+	public function testHandlerWiringFilterAllowed(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/handlerWiring.allowed.neon');
+
+		$container = $configurator->createContainer();
+
+		$channel = $container->getService('monolog.channel.ch_foo');
+		self::assertInstanceOf(Logger::class, $channel);
+
+		$handlers = $channel->getHandlers();
+		self::assertCount(1, $handlers);
+
+		$handlerA = $container->getService('monolog.handler.h_a');
+		self::assertInstanceOf(TestHandler::class, $handlerA);
+
+		$handlerB = $container->getService('monolog.handler.h_b');
+		self::assertInstanceOf(TestHandler::class, $handlerB);
+
+		self::assertSame([$handlerA], $handlers);
+	}
+
+	public function testHandlerWiringFilterForbidden(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/handlerWiring.forbidden.neon');
+
+		$container = $configurator->createContainer();
+
+		$channel = $container->getService('monolog.channel.ch_foo');
+		self::assertInstanceOf(Logger::class, $channel);
+
+		$handlers = $channel->getHandlers();
+		self::assertCount(1, $handlers);
+
+		$handlerA = $container->getService('monolog.handler.h_a');
+		self::assertInstanceOf(TestHandler::class, $handlerA);
+
+		$handlerB = $container->getService('monolog.handler.h_b');
+		self::assertInstanceOf(TestHandler::class, $handlerB);
+
+		self::assertSame([$handlerB], $handlers);
 	}
 
 	public function testProcessorWiring(): void

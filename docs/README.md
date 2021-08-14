@@ -42,6 +42,12 @@ monolog:
 			# true | false | class-string<Monolog\Logger>
 			autowired: true
 
+			# Allowed/forbidden handlers
+			# - unless specified all are used
+			# - only one of these options can be used
+			allowedHandlers: [<h1>]
+			forbiddenHandlers: [<h1>]
+
 	# Handlers register to all channels
 	# - unless channel specifies allowed/forbidden handlers
 	handlers:

@@ -168,6 +168,8 @@ final class MonologExtension extends CompilerExtension
 					is_string($autowired) ? $autowired : $loggerClass,
 					[
 						'name' => $channelName,
+						'handlers' => [],
+						'processors' => [],
 					],
 				)
 				->setAutowired($autowired);

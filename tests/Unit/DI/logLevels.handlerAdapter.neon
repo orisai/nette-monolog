@@ -1,0 +1,21 @@
+extensions:
+	monolog: OriNette\Monolog\DI\MonologExtension
+	- Tests\OriNette\Monolog\Doubles\TestHandlerExtension('h_b')
+
+monolog:
+	debug: true
+
+	channels:
+		ch_1: []
+
+	handlers:
+		h_a:
+			service:
+				factory: Tests\OriNette\Monolog\Doubles\SimpleTestHandler
+				autowired: false
+			level:
+				debug: alert
+		h_b:
+			service: @Monolog\Handler\TestHandler
+			level:
+				debug: alert

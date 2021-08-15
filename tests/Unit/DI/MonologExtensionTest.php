@@ -11,6 +11,7 @@ use Monolog\Processor\TagProcessor;
 use Monolog\Test\TestCase;
 use Nette\DI\InvalidConfigurationException;
 use OriNette\DI\Boot\ManualConfigurator;
+use OriNette\Monolog\HandlerAdapter;
 use OriNette\Monolog\Tracy\LazyTracyToPsrLogger;
 use Orisai\Exceptions\Logic\InvalidArgument;
 use Orisai\Exceptions\Logic\InvalidState;
@@ -391,21 +392,9 @@ MSG);
 		$handler = $container->getService($handlerServiceName ?? 'monolog.handler.h_a');
 		self::assertInstanceOf(TestHandler::class, $handler);
 
-		$filterRecords = static function (array $records): array {
-			$filtered = [];
-			foreach ($records as $record) {
-				$filtered[] = [
-					$record['level_name'],
-					$record['message'],
-				];
-			}
-
-			return $filtered;
-		};
-
 		self::assertSame(
 			$handlerRecords,
-			$filterRecords($handler->getRecords()),
+			$this->filterRecords($handler->getRecords()),
 		);
 	}
 
@@ -492,101 +481,56 @@ MSG);
 		];
 	}
 
-	/**
-	 * Default level is set to emergency only, but handler cannot use that option and logs anything from debug
-	 */
-	public function testLogLevelsSkippedHandler(): void
+	public function testLogLevelsHandlerAdapter(): void
 	{
 		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
 		$configurator->setDebugMode(true);
-		$configurator->addConfig(__DIR__ . '/logLevels.skippedHandler.neon');
+		$configurator->addConfig(__DIR__ . '/logLevels.handlerAdapter.neon');
 
 		$container = $configurator->createContainer();
 
 		$logger = $container->getService('monolog.channel.ch_1');
-		self::assertInstanceOf(LoggerInterface::class, $logger);
+		self::assertInstanceOf(Logger::class, $logger);
+
+		$handlerAdapter_a = $container->getService('monolog.handler.h_a.adapter');
+		self::assertInstanceOf(HandlerAdapter::class, $handlerAdapter_a);
+
+		$handler_a = $container->getService('monolog.handler.h_a');
+		self::assertInstanceOf(SimpleTestHandler::class, $handler_a);
+		self::assertSame($handler_a, $handlerAdapter_a->getHandler());
+
+		$handlerAdapter_b = $container->getService('monolog.handler.h_b.adapter');
+		self::assertInstanceOf(HandlerAdapter::class, $handlerAdapter_b);
+
+		$handler_b = $container->getService('h_b');
+		self::assertInstanceOf(TestHandler::class, $handler_b);
+		self::assertSame($handler_b, $handlerAdapter_b->getHandler());
+
+		self::assertSame(
+			[$handlerAdapter_a, $handlerAdapter_b],
+			$logger->getHandlers(),
+		);
 
 		$logger->debug('debug');
+		$logger->warning('warning');
+		$logger->alert('alert');
 		$logger->emergency('emergency');
-
-		$handler = $container->getService('monolog.handler.h_a');
-		self::assertInstanceOf(SimpleTestHandler::class, $handler);
-
-		$filterRecords = static function (array $records): array {
-			$filtered = [];
-			foreach ($records as $record) {
-				$filtered[] = [
-					$record['level_name'],
-					$record['message'],
-				];
-			}
-
-			return $filtered;
-		};
 
 		self::assertSame(
 			[
-				['DEBUG', 'debug'],
+				['ALERT', 'alert'],
 				['EMERGENCY', 'emergency'],
 			],
-			$filterRecords($handler->getRecords()),
+			$this->filterRecords($handler_a->getRecords()),
 		);
-	}
-
-	/**
-	 * Reference cannot be resolved and so is handler priority not set
-	 */
-	public function testLogLevelsUnresolvableReference(): void
-	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
-		$configurator->addConfig(__DIR__ . '/logLevels.unresolvableReference.neon');
-
-		$container = $configurator->createContainer();
-
-		$logger = $container->getService('monolog.channel.ch_1');
-		self::assertInstanceOf(LoggerInterface::class, $logger);
-
-		$logger->debug('debug');
-		$logger->emergency('emergency');
-
-		$handler = $container->getService('h_a');
-		self::assertInstanceOf(TestHandler::class, $handler);
-
-		$filterRecords = static function (array $records): array {
-			$filtered = [];
-			foreach ($records as $record) {
-				$filtered[] = [
-					$record['level_name'],
-					$record['message'],
-				];
-			}
-
-			return $filtered;
-		};
 
 		self::assertSame(
 			[
-				['DEBUG', 'debug'],
+				['ALERT', 'alert'],
 				['EMERGENCY', 'emergency'],
 			],
-			$filterRecords($handler->getRecords()),
+			$this->filterRecords($handler_b->getRecords()),
 		);
-	}
-
-	public function testLogLevelsInvalidHandler(): void
-	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
-		$configurator->addConfig(__DIR__ . '/logLevels.invalidHandler.neon');
-
-		$this->expectException(InvalidState::class);
-		$this->expectExceptionMessage(
-			"'monolog > handlers > h_a > service' either does not implement AbstractHandler or "
-				. 'is not ServiceDefinition or definition does not contain type or cannot be resolved.',
-		);
-
-		$configurator->createContainer();
 	}
 
 	/**
@@ -773,25 +717,30 @@ MSG);
 			$tracyLogger->getRecords(),
 		);
 
-		$filterRecords = static function (array $records): array {
-			$filtered = [];
-			foreach ($records as $record) {
-				$filtered[] = [
-					$record['level_name'],
-					$record['message'],
-				];
-			}
-
-			return $filtered;
-		};
-
 		self::assertSame(
 			[
 				['NOTICE', 'monolog'],
 				['ERROR', 'tracy'],
 			],
-			$filterRecords($handler->getRecords()),
+			$this->filterRecords($handler->getRecords()),
 		);
+	}
+
+	/**
+	 * @param array<mixed> $records
+	 * @return array<mixed>
+	 */
+	private function filterRecords(array $records): array
+	{
+		$filtered = [];
+		foreach ($records as $record) {
+			$filtered[] = [
+				$record['level_name'],
+				$record['message'],
+			];
+		}
+
+		return $filtered;
 	}
 
 }

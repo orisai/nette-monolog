@@ -20,7 +20,6 @@ monolog:
 	# Default log level
 	# Minimal level of message handler should handle
 	# Any of Psr\Log\LogLevel::*
-	# Warning: Works only with handlers which are AbstractHandler subclass, others are ignored
 	level:
 		# With debug mode enabled
 		debug: debug
@@ -74,7 +73,6 @@ monolog:
 			enabled: %debugMode%
 
 			# Minimal level of message handler should handle
-			# Requires handler to be AbstractHandler subclass
 			# Any of Psr\Log\LogLevel::*
 			level:
 				# With debug mode enabled

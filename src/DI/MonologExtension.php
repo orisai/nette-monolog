@@ -15,6 +15,7 @@ use Nette\DI\MissingServiceException;
 use Nette\Schema\Expect;
 use Nette\Schema\Schema;
 use OriNette\DI\Definitions\DefinitionsLoader;
+use OriNette\Monolog\HandlerAdapter;
 use OriNette\Monolog\Tracy\LazyTracyToPsrLogger;
 use Orisai\Exceptions\Logic\InvalidArgument;
 use Orisai\Exceptions\Logic\InvalidState;
@@ -119,8 +120,7 @@ final class MonologExtension extends CompilerExtension
 		$channelDefinitions = $this->registerChannels($config, $builder);
 
 		$config = $this->processTracyHandlerConfig($config);
-		$handlerDefinitions = $this->registerHandlers($config, $loader);
-		$this->addHandlersToChannels($channelDefinitions, $handlerDefinitions, $config);
+		$this->registerHandlers($config, $loader);
 
 		$processorDefinitions = $this->registerProcessors($config, $loader);
 		$this->addProcessorsToChannels($channelDefinitions, $processorDefinitions, $config);
@@ -133,7 +133,8 @@ final class MonologExtension extends CompilerExtension
 		$builder = $this->getContainerBuilder();
 		$config = $this->config;
 
-		$this->configureHandlers($config);
+		$this->configureHandlers($config, $builder);
+		$this->addHandlersToChannels($this->channelDefinitions, $this->handlerDefinitions, $config);
 
 		// Tracy may not be available in loadConfiguration(), depending on extension order
 		$this->registerToTracyBridge($config, $builder);
@@ -217,7 +218,7 @@ final class MonologExtension extends CompilerExtension
 		}
 	}
 
-	private function configureHandlers(stdClass $config): void
+	private function configureHandlers(stdClass $config, ContainerBuilder $builder): void
 	{
 		$defaultLevel = $config->debug === false
 			? $config->level->production
@@ -230,30 +231,29 @@ final class MonologExtension extends CompilerExtension
 			$handlerProductionLevel = $handlerConfig->level->production;
 
 			if ($definition instanceof Reference) {
-				$definition = $this->tryResolveReference($definition);
+				$this->handlerDefinitions[$name] = $definition = $this->tryResolveReference($definition);
 			}
+
+			$handlerLevel = $config->debug === false
+				? $handlerProductionLevel
+				: $handlerDebugLevel;
+			$handlerLevel ??= $defaultLevel;
 
 			if (
 				!$definition instanceof ServiceDefinition
 				|| ($type = $definition->getType()) === null
 				|| !is_a($type, AbstractHandler::class, true)
 			) {
-				if ($handlerDebugLevel === null && $handlerProductionLevel === null) {
-					continue;
-				}
-
-				throw InvalidState::create()
-					->withMessage(
-						"'$this->name > handlers > $name > service' either does not implement AbstractHandler "
-						. 'or is not ServiceDefinition or definition does not contain type or cannot be resolved.',
-					);
+				$this->handlerDefinitions[$name] = $builder->addDefinition($this->prefix("handler.$name.adapter"))
+					->setFactory(HandlerAdapter::class, [
+						$definition,
+						$handlerLevel,
+						true,
+						[],
+					]);
+			} else {
+				$definition->addSetup('setLevel', [$handlerLevel]);
 			}
-
-			$handlerLevel = $config->debug === false
-				? $handlerProductionLevel
-				: $handlerDebugLevel;
-
-			$definition->addSetup('setLevel', [$handlerLevel ?? $defaultLevel]);
 		}
 	}
 

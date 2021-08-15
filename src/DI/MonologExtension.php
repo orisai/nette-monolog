@@ -239,7 +239,10 @@ final class MonologExtension extends CompilerExtension
 			$handlerLevel = $config->debug === false
 				? $handlerProductionLevel
 				: $handlerDebugLevel;
-			$handlerLevel ??= $defaultLevel;
+
+			$handlerLevel = Logger::toMonologLevel(
+				$handlerLevel ?? $defaultLevel,
+			);
 
 			if (
 				!$definition instanceof ServiceDefinition

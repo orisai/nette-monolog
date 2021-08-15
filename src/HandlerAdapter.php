@@ -8,12 +8,10 @@ use Monolog\Handler\ProcessableHandlerTrait;
 use Monolog\Logger;
 use Monolog\Processor\ProcessorInterface;
 use Monolog\ResettableInterface;
-use Psr\Log\LogLevel;
 
 /**
  * @phpstan-import-type Record from Logger
  * @phpstan-import-type Level from Logger
- * @phpstan-import-type LevelName from Logger
  *
  * @internal
  */
@@ -30,14 +28,13 @@ final class HandlerAdapter implements HandlerInterface, ProcessableHandlerInterf
 	private bool $bubble;
 
 	/**
-	 * @param int|string                $level
 	 * @param array<ProcessorInterface> $processors
-	 * @phpstan-param Level|LevelName|LogLevel::* $level
+	 * @phpstan-param Level $level
 	 */
-	public function __construct(HandlerInterface $handler, $level, bool $bubble, array $processors)
+	public function __construct(HandlerInterface $handler, int $level, bool $bubble, array $processors)
 	{
 		$this->handler = $handler;
-		$this->level = Logger::toMonologLevel($level);
+		$this->level = $level;
 		$this->bubble = $bubble;
 		$this->processors = $processors;
 	}

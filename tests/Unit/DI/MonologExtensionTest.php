@@ -139,22 +139,6 @@ MSG);
 		$configurator->createContainer();
 	}
 
-	public function testHandlerWiringInvalid3(): void
-	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
-		$configurator->addConfig(__DIR__ . '/handlerWiring.invalid.2.neon');
-
-		$this->expectException(InvalidArgument::class);
-		$this->expectExceptionMessage(<<<'MSG'
-Context: Trying to configure 'monolog > channels > ch_foo > allowedHandlers'.
-Problem: Some of the given handlers do not exist - 'unknown'.
-Solution: Register these handlers or remove them from configured option.
-MSG);
-
-		$configurator->createContainer();
-	}
-
 	public function testHandlerWiringFilterAllowed(): void
 	{
 		$configurator = new ManualConfigurator(dirname(__DIR__, 3));

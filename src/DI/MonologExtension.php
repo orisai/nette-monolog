@@ -95,6 +95,7 @@ final class MonologExtension extends CompilerExtension
 						'debug' => Expect::anyOf(null, ...self::LOG_LEVELS),
 						'production' => Expect::anyOf(null, ...self::LOG_LEVELS),
 					]),
+					'bubble' => Expect::bool(true),
 				]),
 				Expect::string(),
 			),
@@ -229,20 +230,19 @@ final class MonologExtension extends CompilerExtension
 		foreach ($this->handlerDefinitions as $name => $definition) {
 			$handlerConfig = $config->handlers[$name];
 
-			$handlerDebugLevel = $handlerConfig->level->debug;
-			$handlerProductionLevel = $handlerConfig->level->production;
-
 			if ($definition instanceof Reference) {
 				$this->handlerDefinitions[$name] = $definition = $this->tryResolveReference($definition);
 			}
 
 			$handlerLevel = $config->debug === false
-				? $handlerProductionLevel
-				: $handlerDebugLevel;
+				? $handlerConfig->level->production
+				: $handlerConfig->level->debug;
 
 			$handlerLevel = Logger::toMonologLevel(
 				$handlerLevel ?? $defaultLevel,
 			);
+
+			$bubble = $handlerConfig->bubble;
 
 			if (
 				!$definition instanceof ServiceDefinition
@@ -253,11 +253,12 @@ final class MonologExtension extends CompilerExtension
 					->setFactory(HandlerAdapter::class, [
 						$definition,
 						$handlerLevel,
-						true,
+						$bubble,
 						[],
 					]);
 			} else {
 				$definition->addSetup('setLevel', [$handlerLevel]);
+				$definition->addSetup('setBubble', [$bubble]);
 			}
 		}
 	}
@@ -358,6 +359,7 @@ final class MonologExtension extends CompilerExtension
 					'debug' => null,
 					'production' => null,
 				],
+				'bubble' => true,
 			];
 		}
 

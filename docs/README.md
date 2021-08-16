@@ -80,6 +80,11 @@ monolog:
 				# Without debug mode enabled
 				production: warning
 
+			# Should successful handler pass record to next handler?
+			# If not then successful handler is the last one which logs the record
+			# true | false
+			bubble: true
+
 	# Processors registered to all channels
 	# - unless channel specifies allowed/forbidden processors
 	# Handlers have to register processors on their own

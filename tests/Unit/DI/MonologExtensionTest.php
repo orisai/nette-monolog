@@ -517,6 +517,90 @@ MSG);
 		);
 	}
 
+	public function testBubblingA(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/bubbling.a.neon');
+
+		$container = $configurator->createContainer();
+
+		$logger = $container->getService('monolog.channel.ch_1');
+		self::assertInstanceOf(Logger::class, $logger);
+
+		$handlerAdapter_a = $container->getService('monolog.handler.h_a.adapter');
+		self::assertInstanceOf(HandlerAdapter::class, $handlerAdapter_a);
+
+		$handler_a = $container->getService('monolog.handler.h_a');
+		self::assertInstanceOf(SimpleTestHandler::class, $handler_a);
+		self::assertSame($handler_a, $handlerAdapter_a->getHandler());
+
+		$handler_b = $container->getService('monolog.handler.h_b');
+		self::assertInstanceOf(TestHandler::class, $handler_b);
+
+		self::assertSame(
+			[$handlerAdapter_a, $handler_b, $container->getService('monolog.handler.h_c.adapter')],
+			$logger->getHandlers(),
+		);
+
+		$logger->debug('debug');
+
+		self::assertSame(
+			[
+				['DEBUG', 'debug'],
+			],
+			$this->filterRecords($handler_a->getRecords()),
+		);
+
+		self::assertSame(
+			[
+				['DEBUG', 'debug'],
+			],
+			$this->filterRecords($handler_b->getRecords()),
+		);
+	}
+
+	public function testBubblingB(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/bubbling.b.neon');
+
+		$container = $configurator->createContainer();
+
+		$logger = $container->getService('monolog.channel.ch_1');
+		self::assertInstanceOf(Logger::class, $logger);
+
+		$handler_a = $container->getService('monolog.handler.h_a');
+		self::assertInstanceOf(TestHandler::class, $handler_a);
+
+		$handlerAdapter_b = $container->getService('monolog.handler.h_b.adapter');
+		self::assertInstanceOf(HandlerAdapter::class, $handlerAdapter_b);
+
+		$handler_b = $container->getService('monolog.handler.h_b');
+		self::assertInstanceOf(SimpleTestHandler::class, $handler_b);
+		self::assertSame($handler_b, $handlerAdapter_b->getHandler());
+
+		self::assertSame(
+			[$handler_a, $handlerAdapter_b, $container->getService('monolog.handler.h_c.adapter')],
+			$logger->getHandlers(),
+		);
+
+		$logger->debug('debug');
+
+		self::assertSame(
+			[
+				['DEBUG', 'debug'],
+			],
+			$this->filterRecords($handler_a->getRecords()),
+		);
+
+		self::assertSame(
+			[],
+			$this->filterRecords($handler_b->getRecords()),
+		);
+	}
+
 	/**
 	 * @runInSeparateProcess
 	 */

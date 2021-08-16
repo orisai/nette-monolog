@@ -1,0 +1,18 @@
+extensions:
+	monolog: OriNette\Monolog\DI\MonologExtension
+
+monolog:
+	debug: true
+
+	channels:
+		ch_1: []
+
+	handlers:
+		h_a:
+			service: Monolog\Handler\TestHandler
+			bubble: false
+		h_b:
+			service: Tests\OriNette\Monolog\Doubles\SimpleTestHandler
+			bubble: true
+		h_c:
+			service: Tests\OriNette\Monolog\Doubles\AlwaysFailHandler

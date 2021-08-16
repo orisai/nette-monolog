@@ -3,6 +3,7 @@
 namespace OriNette\Monolog\DI;
 
 use Monolog\Handler\AbstractHandler;
+use Monolog\Handler\ProcessableHandlerInterface;
 use Monolog\Handler\PsrHandler;
 use Monolog\Logger;
 use Nette\DI\CompilerExtension;
@@ -29,6 +30,7 @@ use function array_diff;
 use function array_keys;
 use function array_reverse;
 use function array_unique;
+use function array_values;
 use function assert;
 use function count;
 use function implode;
@@ -96,6 +98,9 @@ final class MonologExtension extends CompilerExtension
 						'production' => Expect::anyOf(null, ...self::LOG_LEVELS),
 					]),
 					'bubble' => Expect::bool(true),
+					'processors' => Expect::arrayOf(
+						Expect::anyOf(Expect::string(), Expect::array(), Expect::type(Statement::class)),
+					),
 				]),
 				Expect::string(),
 			),
@@ -133,8 +138,9 @@ final class MonologExtension extends CompilerExtension
 
 		$builder = $this->getContainerBuilder();
 		$config = $this->config;
+		$loader = new DefinitionsLoader($this->compiler);
 
-		$this->configureHandlers($config, $builder);
+		$this->configureHandlers($config, $builder, $loader);
 		$this->addHandlersToChannels($this->channelDefinitions, $this->handlerDefinitions, $config);
 
 		// Tracy may not be available in loadConfiguration(), depending on extension order
@@ -221,7 +227,7 @@ final class MonologExtension extends CompilerExtension
 		}
 	}
 
-	private function configureHandlers(stdClass $config, ContainerBuilder $builder): void
+	private function configureHandlers(stdClass $config, ContainerBuilder $builder, DefinitionsLoader $loader): void
 	{
 		$defaultLevel = $config->debug === false
 			? $config->level->production
@@ -244,23 +250,50 @@ final class MonologExtension extends CompilerExtension
 
 			$bubble = $handlerConfig->bubble;
 
+			$processorDefinitions = $this->registerHandlerProcessors($name, $handlerConfig, $loader);
+
 			if (
 				!$definition instanceof ServiceDefinition
 				|| ($type = $definition->getType()) === null
 				|| !is_a($type, AbstractHandler::class, true)
+				|| (!is_a($type, ProcessableHandlerInterface::class, true) && $processorDefinitions !== [])
 			) {
 				$this->handlerDefinitions[$name] = $builder->addDefinition($this->prefix("handler.$name.adapter"))
 					->setFactory(HandlerAdapter::class, [
 						$definition,
 						$handlerLevel,
 						$bubble,
-						[],
+						array_values($processorDefinitions),
 					]);
 			} else {
 				$definition->addSetup('setLevel', [$handlerLevel]);
 				$definition->addSetup('setBubble', [$bubble]);
+
+				foreach (array_reverse($processorDefinitions) as $processorDefinition) {
+					$definition->addSetup('pushProcessor', [$processorDefinition]);
+				}
 			}
 		}
+	}
+
+	/**
+	 * @return array<Definition|Reference>
+	 */
+	private function registerHandlerProcessors(
+		string $handlerName,
+		stdClass $handlerConfig,
+		DefinitionsLoader $loader
+	): array
+	{
+		$processorDefinitions = [];
+		foreach ($handlerConfig->processors as $processorName => $processorConfig) {
+			$processorDefinitions[$processorName] = $loader->loadDefinitionFromConfig(
+				$processorConfig,
+				$this->prefix("handler.$handlerName.processor.$processorName"),
+			);
+		}
+
+		return $processorDefinitions;
 	}
 
 	/**
@@ -276,7 +309,7 @@ final class MonologExtension extends CompilerExtension
 			);
 		}
 
-		return array_reverse($processorDefinitions);
+		return $processorDefinitions;
 	}
 
 	/**
@@ -301,7 +334,7 @@ final class MonologExtension extends CompilerExtension
 				'processors',
 			);
 
-			foreach ($filteredProcessorDefinitions as $processorDefinition) {
+			foreach (array_reverse($filteredProcessorDefinitions) as $processorDefinition) {
 				$channelDefinition->addSetup('pushProcessor', [$processorDefinition]);
 			}
 		}
@@ -360,6 +393,7 @@ final class MonologExtension extends CompilerExtension
 					'production' => null,
 				],
 				'bubble' => true,
+				'processors' => [],
 			];
 		}
 

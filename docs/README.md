@@ -85,6 +85,10 @@ monolog:
 			# true | false
 			bubble: true
 
+			# Processors registered to this handler only
+			processors:
+				- @h2p1Service
+
 	# Processors registered to all channels
 	# - unless channel specifies allowed/forbidden processors
 	# Handlers have to register processors on their own

@@ -29,7 +29,7 @@ final class HandlerAdapter implements HandlerInterface, ProcessableHandlerInterf
 
 	/**
 	 * @param array<ProcessorInterface> $processors
-	 * @phpstan-param Level $level
+	 * @phpstan-param Level             $level
 	 */
 	public function __construct(HandlerInterface $handler, int $level, bool $bubble, array $processors)
 	{
@@ -93,6 +93,15 @@ final class HandlerAdapter implements HandlerInterface, ProcessableHandlerInterf
 	public function getHandler(): HandlerInterface
 	{
 		return $this->handler;
+	}
+
+	/**
+	 * @return array<callable>
+	 * @phpstan-return array<ProcessorInterface|callable(Record): Record>
+	 */
+	public function getProcessors(): array
+	{
+		return $this->processors;
 	}
 
 }

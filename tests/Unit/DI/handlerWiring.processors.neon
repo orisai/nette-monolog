@@ -1,0 +1,20 @@
+extensions:
+	monolog: OriNette\Monolog\DI\MonologExtension
+
+monolog:
+	debug: true
+
+	channels:
+		ch_foo: []
+
+	handlers:
+		h_a:
+			service: Tests\OriNette\Monolog\Doubles\ExtendedTestHandler
+			processors:
+				p_1: Monolog\Processor\TagProcessor(['p_1'])
+				p_2: Monolog\Processor\TagProcessor(['p_2'])
+		h_b:
+			service: Tests\OriNette\Monolog\Doubles\SimpleTestHandler
+			processors:
+				p_1: Monolog\Processor\TagProcessor(['p_1'])
+				p_2: Monolog\Processor\TagProcessor(['p_2'])

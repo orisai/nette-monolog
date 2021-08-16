@@ -17,6 +17,7 @@ use Orisai\Exceptions\Logic\InvalidArgument;
 use Orisai\Exceptions\Logic\InvalidState;
 use Psr\Log\LoggerInterface;
 use Tests\OriNette\Monolog\Doubles\BazLogger;
+use Tests\OriNette\Monolog\Doubles\ExtendedTestHandler;
 use Tests\OriNette\Monolog\Doubles\SimpleTestHandler;
 use Tests\OriNette\Monolog\Doubles\TracyTestLogger;
 use Tracy\Debugger;
@@ -106,6 +107,43 @@ MSG);
 		self::assertInstanceOf(TestHandler::class, $handlerB);
 
 		self::assertSame([$handlerA, $handlerB], $fooHandlers);
+	}
+
+	public function testHandlerProcessorWiring(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/handlerWiring.processors.neon');
+
+		$container = $configurator->createContainer();
+
+		$channel = $container->getService('monolog.channel.ch_foo');
+		self::assertInstanceOf(Logger::class, $channel);
+
+		$handlers = $channel->getHandlers();
+		self::assertCount(2, $handlers);
+
+		$handlerA = $container->getService('monolog.handler.h_a');
+		self::assertInstanceOf(ExtendedTestHandler::class, $handlerA);
+
+		$handlerB = $container->getService('monolog.handler.h_b');
+		self::assertInstanceOf(SimpleTestHandler::class, $handlerB);
+
+		$handlerB_adapter = $container->getService('monolog.handler.h_b.adapter');
+		self::assertInstanceOf(HandlerAdapter::class, $handlerB_adapter);
+		self::assertSame($handlerB, $handlerB_adapter->getHandler());
+
+		self::assertSame([$handlerA, $handlerB_adapter], $handlers);
+
+		self::assertSame([
+			$container->getService('monolog.handler.h_a.processor.p_1'),
+			$container->getService('monolog.handler.h_a.processor.p_2'),
+		], $handlerA->getProcessors());
+
+		self::assertSame([
+			$container->getService('monolog.handler.h_b.processor.p_1'),
+			$container->getService('monolog.handler.h_b.processor.p_2'),
+		], $handlerB_adapter->getProcessors());
 	}
 
 	public function testHandlerWiringInvalid1(): void

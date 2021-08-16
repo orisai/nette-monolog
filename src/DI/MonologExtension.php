@@ -92,20 +92,20 @@ final class MonologExtension extends CompilerExtension
 			'handlers' => Expect::arrayOf(
 				Expect::structure([
 					'enabled' => Expect::bool(true),
-					'service' => Expect::anyOf(Expect::string(), Expect::array(), Expect::type(Statement::class)),
+					'service' => DefinitionsLoader::schema(),
 					'level' => Expect::structure([
 						'debug' => Expect::anyOf(null, ...self::LOG_LEVELS),
 						'production' => Expect::anyOf(null, ...self::LOG_LEVELS),
 					]),
 					'bubble' => Expect::bool(true),
 					'processors' => Expect::arrayOf(
-						Expect::anyOf(Expect::string(), Expect::array(), Expect::type(Statement::class)),
+						DefinitionsLoader::schema(),
 					),
 				]),
 				Expect::string(),
 			),
 			'processors' => Expect::arrayOf(
-				Expect::anyOf(Expect::string(), Expect::array(), Expect::type(Statement::class)),
+				DefinitionsLoader::schema(),
 				Expect::string(),
 			),
 			'bridge' => Expect::structure([

@@ -1,8 +1,20 @@
 # Nette Monolog
 
-Monolog logger integration for Nette
+[Monolog](https://github.com/Seldaek/monolog) logger integration for Nette
 
 ## Content
+
+- [Setup](#setup)
+
+## Setup
+
+Install with [Composer](https://getcomposer.org)
+
+```sh
+composer require orisai/nette-monolog
+```
+
+## Other stuff
 
 TODO
 

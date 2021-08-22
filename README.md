@@ -1,7 +1,7 @@
 <h1 align="center">Orisai Nette Monolog</h1>
 
 <p align="center">
-    Monolog logger integration for Nette
+    <a href="https://github.com/Seldaek/monolog">Monolog</a> logger integration for Nette
 </p>
 
 <p align=center>

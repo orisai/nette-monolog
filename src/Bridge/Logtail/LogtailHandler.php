@@ -5,6 +5,7 @@ namespace OriNette\Monolog\Bridge\Logtail;
 use Monolog\Formatter\FormatterInterface;
 use Monolog\Formatter\NormalizerFormatter;
 use Monolog\Handler\AbstractProcessingHandler;
+use Monolog\Handler\BufferHandler;
 use Monolog\Logger;
 use function register_shutdown_function;
 
@@ -46,7 +47,7 @@ final class LogtailHandler extends AbstractProcessingHandler
 		$this->records[] = $record;
 	}
 
-	public function flush(): void
+	private function flush(): void
 	{
 		if ($this->records !== []) {
 			$this->client->logBatch($this->records);
@@ -57,6 +58,8 @@ final class LogtailHandler extends AbstractProcessingHandler
 	public function close(): void
 	{
 		$this->flush();
+
+		parent::close();
 	}
 
 	public function reset(): void
@@ -69,6 +72,14 @@ final class LogtailHandler extends AbstractProcessingHandler
 	protected function getDefaultFormatter(): FormatterInterface
 	{
 		return new NormalizerFormatter();
+	}
+
+	/**
+	 * @see BufferHandler::__destruct()
+	 */
+	public function __destruct()
+	{
+		// Parent is not called intentionally
 	}
 
 }

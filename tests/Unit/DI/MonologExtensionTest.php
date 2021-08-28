@@ -156,8 +156,8 @@ MSG);
 
 		$this->expectException(InvalidConfigurationException::class);
 		$this->expectExceptionMessage(
-			"Failed assertion 'Use only allowedHandlers or forbiddenHandlers, these options are incompatible.'"
-			. " for item 'monolog › channels › ch_foo' with value object stdClass.",
+			"Failed assertion 'Use only 'allowed' or 'forbidden', these options are incompatible.'"
+			. " for item 'monolog › channels › ch_foo › handlers' with value object stdClass.",
 		);
 
 		$configurator->createContainer();
@@ -171,7 +171,7 @@ MSG);
 
 		$this->expectException(InvalidArgument::class);
 		$this->expectExceptionMessage(<<<'MSG'
-Context: Trying to configure 'monolog > channels > ch_foo > allowedHandlers'.
+Context: Trying to configure 'monolog > channels > ch_foo > handlers > allowed'.
 Problem: Some of the given handlers do not exist - 'unknown'.
 Solution: Register these handlers or remove them from configured option.
 MSG);
@@ -261,8 +261,8 @@ MSG);
 
 		$this->expectException(InvalidConfigurationException::class);
 		$this->expectExceptionMessage(
-			"Failed assertion 'Use only allowedProcessors or forbiddenProcessors, these options are incompatible.'"
-			. " for item 'monolog › channels › ch_foo' with value object stdClass.",
+			"Failed assertion 'Use only 'allowed' or 'forbidden', these options are incompatible.'"
+			. " for item 'monolog › channels › ch_foo › processors' with value object stdClass.",
 		);
 
 		$configurator->createContainer();
@@ -276,7 +276,8 @@ MSG);
 
 		$this->expectException(InvalidArgument::class);
 		$this->expectExceptionMessage(<<<'MSG'
-Context: Trying to configure 'monolog > channels > ch_foo > allowedProcessors'.
+Context: Trying to configure 'monolog > channels > ch_foo > processors >
+         allowed'.
 Problem: Some of the given processors do not exist - 'unknown'.
 Solution: Register these processors or remove them from configured option.
 MSG);
@@ -292,8 +293,8 @@ MSG);
 
 		$this->expectException(InvalidArgument::class);
 		$this->expectExceptionMessage(<<<'MSG'
-Context: Trying to configure 'monolog > channels > ch_foo >
-         forbiddenProcessors'.
+Context: Trying to configure 'monolog > channels > ch_foo > processors >
+         forbidden'.
 Problem: Some of the given processors do not exist - 'unknown'.
 Solution: Register these processors or remove them from configured option.
 MSG);

@@ -63,6 +63,17 @@ final class MonologExtension extends CompilerExtension
 	/** @var array<Definition|Reference> */
 	private array $handlerDefinitions;
 
+	private function getFilteredDefinitionsSchema(): Schema
+	{
+		return Expect::structure([
+			'allowed' => Expect::listOf(Expect::string()),
+			'forbidden' => Expect::listOf(Expect::string()),
+		])->assert(
+			static fn (stdClass $value): bool => !($value->allowed !== [] && $value->forbidden !== []),
+			'Use only \'allowed\' or \'forbidden\', these options are incompatible.',
+		);
+	}
+
 	public function getConfigSchema(): Schema
 	{
 		return Expect::structure([
@@ -77,17 +88,9 @@ final class MonologExtension extends CompilerExtension
 						Expect::bool(),
 						Expect::string(),
 					)->default(false),
-					'allowedHandlers' => Expect::listOf(Expect::string()),
-					'forbiddenHandlers' => Expect::listOf(Expect::string()),
-					'allowedProcessors' => Expect::listOf(Expect::string()),
-					'forbiddenProcessors' => Expect::listOf(Expect::string()),
-				])->assert(
-					static fn (stdClass $value): bool => !($value->allowedHandlers !== [] && $value->forbiddenHandlers !== []),
-					'Use only allowedHandlers or forbiddenHandlers, these options are incompatible.',
-				)->assert(
-					static fn (stdClass $value): bool => !($value->allowedProcessors !== [] && $value->forbiddenProcessors !== []),
-					'Use only allowedProcessors or forbiddenProcessors, these options are incompatible.',
-				),
+					'handlers' => $this->getFilteredDefinitionsSchema(),
+					'processors' => $this->getFilteredDefinitionsSchema(),
+				]),
 				Expect::string(),
 			),
 			'handlers' => Expect::arrayOf(
@@ -232,10 +235,10 @@ final class MonologExtension extends CompilerExtension
 
 			$filteredHandlerDefinitions = $this->filterAllowedDefinitions(
 				$handlerDefinitions,
-				$channelConfig->allowedHandlers,
-				$channelConfig->forbiddenHandlers,
-				"channels > $channelName > allowedHandlers",
-				"channels > $channelName > forbiddenHandlers",
+				$channelConfig->handlers->allowed,
+				$channelConfig->handlers->forbidden,
+				"channels > $channelName > handlers > allowed",
+				"channels > $channelName > handlers > forbidden",
 				'handlers',
 			);
 
@@ -343,10 +346,10 @@ final class MonologExtension extends CompilerExtension
 
 			$filteredProcessorDefinitions = $this->filterAllowedDefinitions(
 				$processorDefinitions,
-				$channelConfig->allowedProcessors,
-				$channelConfig->forbiddenProcessors,
-				"channels > $channelName > allowedProcessors",
-				"channels > $channelName > forbiddenProcessors",
+				$channelConfig->processors->allowed,
+				$channelConfig->processors->forbidden,
+				"channels > $channelName > processors > allowed",
+				"channels > $channelName > processors > forbidden",
 				'processors',
 			);
 

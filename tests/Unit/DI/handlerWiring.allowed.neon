@@ -6,7 +6,8 @@ monolog:
 
 	channels:
 		ch_foo:
-			allowedHandlers: [h_a]
+			handlers:
+				allowed: [h_a]
 
 	handlers:
 		h_a:

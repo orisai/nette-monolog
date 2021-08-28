@@ -6,4 +6,5 @@ monolog:
 
 	channels:
 		ch_foo:
-			forbiddenProcessors: [unknown]
+			processors:
+				forbidden: [unknown]

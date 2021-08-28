@@ -202,28 +202,29 @@ monolog:
 			service: Monolog\Handler\StreamHandler('file://%logDir%/monolog.txt')
 ```
 
-Handlers are registered to all channels. To add only explicitly allowed handlers, use `allowedHandlers` channel option.
-To add all handlers except forbidden, use `forbiddenHandlers` channel option.
+Handlers are registered to all channels. To add only explicitly allowed handlers, use `handlers > allowed` channel
+option. To add all handlers except forbidden, use `handlers > forbidden` channel option.
 
 ```neon
 monolog:
 	channels:
-
-		# Allowed/forbidden handlers
-		# - unless specified all are used
-		# - only one of these options can be used
 		example:
 
-			# array<string>
-			# Default: []
-			allowedHandlers:
-				- file
-				- redis
+			# Allowed/forbidden handlers
+			# - unless specified all are used
+			# - only one of these options can be used
+			handlers:
 
-			# array<string>
-			# Default: []
-			forbiddenHandlers:
-				- file
+				# array<string>
+				# Default: []
+				allowed:
+					- file
+					- redis
+
+				# array<string>
+				# Default: []
+				forbidden:
+					- file
 ```
 
 ## Log levels
@@ -314,28 +315,29 @@ monolog:
 		web: Monolog\Processor\WebProcessor
 ```
 
-Processors are registered to all channels. To add only explicitly allowed processors, use `allowedProcessors` channel
-option. To add all processors except forbidden, use `forbiddenProcessors` channel option.
+Processors are registered to all channels. To add only explicitly allowed processors, use `processors > allowed` channel
+option. To add all processors except forbidden, use `processors > forbidden` channel option.
 
 ```neon
 monolog:
 	channels:
-
-		# Allowed/forbidden processors
-		# - unless specified all are used
-		# - only one of these options can be used
 		example:
 
-			# array<string>
-			# Default: []
-			allowedProcessors:
-				- git
-				- web
+			# Allowed/forbidden processors
+			# - unless specified all are used
+			# - only one of these options can be used
+			processors:
 
-			# array<string>
-			# Default: []
-			forbiddenProcessors:
-				- git
+				# array<string>
+				# Default: []
+				allowed:
+					- git
+					- web
+
+				# array<string>
+				# Default: []
+				forbidden:
+					- git
 ```
 
 Register processor to single handler, instead of channel:

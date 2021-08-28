@@ -6,7 +6,8 @@ monolog:
 
 	channels:
 		ch_foo:
-			forbiddenProcessors: [p_1]
+			processors:
+				forbidden: [p_1]
 
 	processors:
 		p_1: Monolog\Processor\TagProcessor(['p_1'])

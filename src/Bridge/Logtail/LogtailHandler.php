@@ -2,6 +2,8 @@
 
 namespace OriNette\Monolog\Bridge\Logtail;
 
+use Monolog\Formatter\FormatterInterface;
+use Monolog\Formatter\NormalizerFormatter;
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger;
 use function register_shutdown_function;
@@ -36,6 +38,8 @@ final class LogtailHandler extends AbstractProcessingHandler
 			$this->initialized = true;
 		}
 
+		$record = $record['formatted'];
+
 		$record['dt'] = $record['datetime'];
 		unset($record['datetime']);
 
@@ -60,6 +64,11 @@ final class LogtailHandler extends AbstractProcessingHandler
 		$this->flush();
 
 		parent::reset();
+	}
+
+	protected function getDefaultFormatter(): FormatterInterface
+	{
+		return new NormalizerFormatter();
 	}
 
 }

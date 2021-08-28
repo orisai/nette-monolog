@@ -1,0 +1,11 @@
+extensions:
+	monolog: OriNette\Monolog\DI\MonologExtension
+
+monolog:
+	debug: true
+
+	channels:
+		foo:
+			autowired: Tests\OriNette\Monolog\Doubles\FlushTrackingLogger
+		bar:
+			autowired: Tests\OriNette\Monolog\Doubles\FlushTrackingLogger

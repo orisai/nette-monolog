@@ -17,6 +17,7 @@ use Nette\Schema\Expect;
 use Nette\Schema\Schema;
 use OriNette\DI\Definitions\DefinitionsLoader;
 use OriNette\Monolog\HandlerAdapter;
+use OriNette\Monolog\LogFlusher;
 use OriNette\Monolog\Tracy\LazyTracyToPsrLogger;
 use Orisai\Exceptions\Logic\InvalidArgument;
 use Orisai\Exceptions\Logic\InvalidState;
@@ -125,6 +126,8 @@ final class MonologExtension extends CompilerExtension
 
 		$channelDefinitions = $this->registerChannels($config, $builder);
 
+		$this->registerLogFlusher($channelDefinitions, $builder);
+
 		$config = $this->processTracyHandlerConfig($config);
 		$this->registerHandlers($config, $loader);
 
@@ -186,9 +189,22 @@ final class MonologExtension extends CompilerExtension
 	}
 
 	/**
-	 * @return array<Definition|Reference>
+	 * @param array<string, ServiceDefinition> $channelDefinitions
 	 */
-	private function registerHandlers(stdClass $config, DefinitionsLoader $loader): array
+	private function registerLogFlusher(array $channelDefinitions, ContainerBuilder $builder): void
+	{
+		$channelDefinitionMap = [];
+		foreach ($channelDefinitions as $channelName => $channelDefinition) {
+			$channelDefinitionMap[$channelName] = $channelDefinition->getName();
+		}
+
+		$builder->addDefinition($this->prefix('logFlusher'))
+			->setFactory(LogFlusher::class, [
+				$channelDefinitionMap,
+			]);
+	}
+
+	private function registerHandlers(stdClass $config, DefinitionsLoader $loader): void
 	{
 		$handlerDefinitions = [];
 		foreach ($config->handlers as $handlerName => $handlerConfig) {
@@ -202,12 +218,12 @@ final class MonologExtension extends CompilerExtension
 			);
 		}
 
-		return $this->handlerDefinitions = $handlerDefinitions;
+		$this->handlerDefinitions = $handlerDefinitions;
 	}
 
 	/**
-	 * @param array<ServiceDefinition> $channelDefinitions
-	 * @param array<Definition|Reference> $handlerDefinitions
+	 * @param array<string, ServiceDefinition> $channelDefinitions
+	 * @param array<string, Definition|Reference> $handlerDefinitions
 	 */
 	private function addHandlersToChannels(array $channelDefinitions, array $handlerDefinitions, stdClass $config): void
 	{

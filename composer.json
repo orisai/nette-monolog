@@ -25,7 +25,7 @@
 		"nette/di": "^3.0.6",
 		"nette/schema": "^1.1.0",
 		"orisai/exceptions": "^1.1.0",
-		"orisai/nette-di": "^1.0.0",
+		"orisai/nette-di": "^1.0.1",
 		"psr/log": "^1.1.0",
 		"symfony/http-client": "^5.3.0"
 	},

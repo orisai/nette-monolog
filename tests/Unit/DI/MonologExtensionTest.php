@@ -12,12 +12,14 @@ use Monolog\Test\TestCase;
 use Nette\DI\InvalidConfigurationException;
 use OriNette\DI\Boot\ManualConfigurator;
 use OriNette\Monolog\HandlerAdapter;
+use OriNette\Monolog\LogFlusher;
 use OriNette\Monolog\Tracy\LazyTracyToPsrLogger;
 use Orisai\Exceptions\Logic\InvalidArgument;
 use Orisai\Exceptions\Logic\InvalidState;
 use Psr\Log\LoggerInterface;
 use Tests\OriNette\Monolog\Doubles\BazLogger;
 use Tests\OriNette\Monolog\Doubles\ExtendedTestHandler;
+use Tests\OriNette\Monolog\Doubles\FlushTrackingLogger;
 use Tests\OriNette\Monolog\Doubles\SimpleTestHandler;
 use Tests\OriNette\Monolog\Doubles\TracyTestLogger;
 use Tracy\Debugger;
@@ -847,6 +849,48 @@ MSG);
 		}
 
 		return $filtered;
+	}
+
+	public function testLogFlusher(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/logFlusher.neon');
+
+		$container = $configurator->createContainer();
+
+		$logFlusher = $container->getService('monolog.logFlusher');
+		self::assertInstanceOf(LogFlusher::class, $logFlusher);
+
+		$logFlusher->reset();
+		$logFlusher->close();
+
+		self::assertFalse($container->isCreated('monolog.channel.foo'));
+		self::assertFalse($container->isCreated('monolog.channel.bar'));
+
+		$fooChannel = $container->getService('monolog.channel.foo');
+		self::assertInstanceOf(FlushTrackingLogger::class, $fooChannel);
+		self::assertSame(0, $fooChannel->resetCount);
+		self::assertSame(0, $fooChannel->closeCount);
+
+		$logFlusher->reset();
+		$logFlusher->close();
+
+		self::assertSame(1, $fooChannel->resetCount);
+		self::assertSame(1, $fooChannel->closeCount);
+
+		$barChannel = $container->getService('monolog.channel.bar');
+		self::assertInstanceOf(FlushTrackingLogger::class, $barChannel);
+		self::assertSame(0, $barChannel->resetCount);
+		self::assertSame(0, $barChannel->closeCount);
+
+		$logFlusher->reset();
+		$logFlusher->close();
+
+		self::assertSame(2, $fooChannel->resetCount);
+		self::assertSame(2, $fooChannel->closeCount);
+		self::assertSame(1, $barChannel->resetCount);
+		self::assertSame(1, $barChannel->closeCount);
 	}
 
 }

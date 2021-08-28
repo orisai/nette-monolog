@@ -488,11 +488,46 @@ parameters:
 ## Efficiency
 
 Some handlers log in batches instead of logging every message individually. This greatly improves overall performance
-for usual use cases but also increases memory usage for long-running task. Ensure that your tasks count with that and
-flush records occasionally.
+for usual use cases but also increases memory usage for long-running task. To ensure your tasks count with that and
+flush records occasionally, use `OriNette\Monolog\LogFlusher`. It has available same `reset()` and `close()` methods as
+`Monolog\Logger` but also ensures method is called for all used loggers.
 
 ```php
-$this->logger->reset();
+use App\Core\BusinessEventsLogger;
+use OriNette\Monolog\LogFlusher;
+use Psr\Log\LoggerInterface;
+
+class Example
+{
+
+	private LoggerInterface $mainLogger;
+
+	private BusinessEventsLogger $businessEventsLogger;
+
+	private LogFlusher $logFlusher;
+
+	public function __construct(
+		LoggerInterface $mainLogger,
+		BusinessEventsLogger $businessEventsLogger,
+		LogFlusher $logFlusher,
+	)
+	{
+		$this->mainLogger = $mainLogger;
+		$this->businessEventsLogger = $businessEventsLogger;
+		$this->logFlusher = $logFlusher;
+	}
+
+	public function doSomething(): void
+	{
+		// A lot of logging
+		$this->mainLogger->info('Uh, I am logging a lot.');
+		$this->businessEventsLogger->emergency('Yikes! We are doomed.');
+		// ...
+		// Flush instantiated loggers
+		$this->logFlusher->reset();
+	}
+
+}
 ```
 
 To enable buffering for handlers that may benefit from it and do not support buffering out of the box you may

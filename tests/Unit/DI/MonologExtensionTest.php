@@ -24,7 +24,6 @@ use Tests\OriNette\Monolog\Doubles\SimpleTestHandler;
 use Tests\OriNette\Monolog\Doubles\TracyTestLogger;
 use Tracy\Debugger;
 use Tracy\ILogger;
-use function array_column;
 use function dirname;
 
 final class MonologExtensionTest extends TestCase
@@ -664,7 +663,14 @@ MSG);
 		self::assertTrue($container->isCreated('monolog.bridge.psrToTracy'));
 		self::assertTrue($container->isCreated('tracy.logger'));
 
-		$logger->notice('test');
+		$logger->debug('debug');
+		$logger->info('info');
+		$logger->notice('notice');
+		$logger->warning('warning');
+		$logger->error('error');
+		$logger->critical('critical');
+		$logger->alert('alert');
+		$logger->emergency('emergency');
 
 		$tracyLogger = $container->getService('tracy.logger');
 		self::assertInstanceOf(TracyTestLogger::class, $tracyLogger);
@@ -672,10 +678,14 @@ MSG);
 
 		self::assertSame(
 			[
-				[
-					'value' => 'test',
-					'level' => 'warning',
-				],
+				['debug', 'debug'],
+				['info', 'info'],
+				['notice', 'warning'],
+				['warning', 'warning'],
+				['error', 'error'],
+				['critical', 'critical'],
+				['alert', 'critical'],
+				['emergency', 'critical'],
 			],
 			$tracyLogger->getRecords(),
 		);
@@ -718,7 +728,13 @@ MSG);
 		self::assertFalse($container->isCreated('monolog.channel.ch3'));
 		self::assertFalse($container->isCreated('monolog.handler.test'));
 
-		Debugger::log('test');
+		Debugger::log('debug', ILogger::DEBUG);
+		Debugger::log('info', ILogger::INFO);
+		Debugger::log('warning', ILogger::WARNING);
+		Debugger::log('error', ILogger::ERROR);
+		Debugger::log('exception', ILogger::EXCEPTION);
+		Debugger::log('critical', ILogger::CRITICAL);
+		Debugger::log('unknown', 'unknown');
 
 		self::assertTrue($container->isCreated('monolog.channel.ch1'));
 		self::assertFalse($container->isCreated('monolog.channel.ch2'));
@@ -737,10 +753,22 @@ MSG);
 		// ch2 is not registered to bridge and so it does not write message
 		self::assertSame(
 			[
-				'test',
-				'test',
+				['DEBUG', 'debug'],
+				['DEBUG', 'debug'],
+				['INFO', 'info'],
+				['INFO', 'info'],
+				['WARNING', 'warning'],
+				['WARNING', 'warning'],
+				['ERROR', 'error'],
+				['ERROR', 'error'],
+				['ERROR', 'exception'],
+				['ERROR', 'exception'],
+				['CRITICAL', 'critical'],
+				['CRITICAL', 'critical'],
+				['ERROR', 'unknown'],
+				['ERROR', 'unknown'],
 			],
-			array_column($handler->getRecords(), 'message'),
+			$this->filterRecords($handler->getRecords()),
 		);
 	}
 
@@ -815,12 +843,12 @@ MSG);
 		self::assertSame(
 			[
 				[
-					'value' => 'monolog',
-					'level' => 'warning',
+					'monolog',
+					'warning',
 				],
 				[
-					'value' => 'tracy',
-					'level' => 'error',
+					'tracy',
+					'error',
 				],
 			],
 			$tracyLogger->getRecords(),

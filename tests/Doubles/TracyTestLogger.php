@@ -7,7 +7,7 @@ use Tracy\ILogger;
 final class TracyTestLogger implements ILogger
 {
 
-	/** @var array<array{value: mixed, level: mixed}> */
+	/** @var array<array{0: mixed, 1: mixed}> */
 	private array $records = [];
 
 	/**
@@ -16,14 +16,11 @@ final class TracyTestLogger implements ILogger
 	 */
 	public function log($value, $level = self::INFO): void
 	{
-		$this->records[] = [
-			'value' => $value,
-			'level' => $level,
-		];
+		$this->records[] = [$value, $level];
 	}
 
 	/**
-	 * @return array<array{value: mixed, level: mixed}>
+	 * @return array<array{0: mixed, 1: mixed}>
 	 */
 	public function getRecords(): array
 	{

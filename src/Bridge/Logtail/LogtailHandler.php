@@ -1,6 +1,6 @@
 <?php declare(strict_types = 1);
 
-namespace OriNette\Monolog\Logtail;
+namespace OriNette\Monolog\Bridge\Logtail;
 
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger;

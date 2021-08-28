@@ -1,8 +1,10 @@
 <?php declare(strict_types = 1);
 
-namespace OriNette\Monolog\Logtail;
+namespace OriNette\Monolog\Bridge\Logtail;
 
 use Nette\Utils\Json;
+use Orisai\Utils\Dependencies\Dependencies;
+use Orisai\Utils\Dependencies\Exception\PackageRequired;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -19,6 +21,10 @@ final class LogtailClient
 
 	public static function create(string $token, ?string $uri = null): self
 	{
+		if (!Dependencies::isPackageLoaded('symfony/http-client')) {
+			throw PackageRequired::forClass(['symfony/http-client'], self::class);
+		}
+
 		$httpClient = HttpClient::createForBaseUri(
 			$uri ?? 'https://in.logtail.com/',
 			[

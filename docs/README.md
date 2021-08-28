@@ -478,8 +478,8 @@ batches to provide the best possible experience.
 monolog:
 	handlers:
 		logtail:
-			service: OriNette\Monolog\Logtail\LogtailHandler(
-				OriNette\Monolog\Logtail\LogtailClient::create(%logtail.token%)
+			service: OriNette\Monolog\Bridge\Logtail\LogtailHandler(
+				OriNette\Monolog\Bridge\Logtail\LogtailClient::create(%logtail.token%)
 			)
 
 parameters:

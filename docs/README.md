@@ -413,8 +413,8 @@ monolog:
 
 For logging *to* Tracy *from* Monolog, enable `toTracy` option.
 
-Under the hood extension registers [handler](#handlers) with reserved name `tracy`. This handler can be configured as
-any other (except the preset `service` key) so you can e.g. allow or forbid this handler for specific channels.
+Under the hood extension registers [handler](#handlers) with reserved name `tracyLogger`. This handler can be configured
+as any other (except the preset `service` key) so you can e.g. allow or forbid this handler for specific channels.
 
 ```neon
 monolog:

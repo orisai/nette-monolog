@@ -356,7 +356,7 @@ MSG);
 
 		$this->expectException(InvalidArgument::class);
 		$this->expectExceptionMessage(<<<'MSG'
-Context: Trying to configure 'monolog > handlers > tracy > service'.
+Context: Trying to configure 'monolog > handlers > tracyLogger > service'.
 Problem: This options is reserved and cannot be changed.
 Solution: Remove the option or choose different name for your handler.
 MSG);
@@ -372,7 +372,7 @@ MSG);
 
 		$this->expectException(InvalidState::class);
 		$this->expectExceptionMessage(<<<'MSG'
-Context: Trying to configure 'monolog > handlers > tracy'.
+Context: Trying to configure 'monolog > handlers > tracyLogger'.
 Problem: This option is reserved for Tracy handler and can be configured only
          when 'monolog > bridge > toTracy' is enabled.
 Solution: Set 'toTracy' option to `true` or remove Tracy handler configuration.
@@ -653,14 +653,14 @@ MSG);
 
 		$container = $configurator->createContainer();
 
-		self::assertFalse($container->isCreated('monolog.handler.tracy'));
+		self::assertFalse($container->isCreated('monolog.handler.tracyLogger'));
 		self::assertFalse($container->isCreated('monolog.bridge.psrToTracy'));
 		self::assertFalse($container->isCreated('tracy.logger'));
 
 		$logger = $container->getService('monolog.channel.ch1');
 		self::assertInstanceOf(LoggerInterface::class, $logger);
 
-		self::assertTrue($container->isCreated('monolog.handler.tracy'));
+		self::assertTrue($container->isCreated('monolog.handler.tracyLogger'));
 		self::assertTrue($container->isCreated('monolog.bridge.psrToTracy'));
 		self::assertTrue($container->isCreated('tracy.logger'));
 
@@ -821,14 +821,14 @@ MSG);
 
 		$container = $configurator->createContainer();
 
-		self::assertFalse($container->isCreated('monolog.handler.tracy'));
+		self::assertFalse($container->isCreated('monolog.handler.tracyLogger'));
 		self::assertFalse($container->isCreated('monolog.bridge.psrToTracy'));
 		self::assertTrue($container->isCreated('tracy.logger'));
 
 		$logger = $container->getService('monolog.channel.ch1');
 		self::assertInstanceOf(LoggerInterface::class, $logger);
 
-		self::assertTrue($container->isCreated('monolog.handler.tracy'));
+		self::assertTrue($container->isCreated('monolog.handler.tracyLogger'));
 		self::assertTrue($container->isCreated('monolog.bridge.psrToTracy'));
 
 		$logger->notice('monolog');

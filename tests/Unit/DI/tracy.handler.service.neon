@@ -6,5 +6,5 @@ monolog:
 	debug: true
 
 	handlers:
-		tracy:
+		tracyLogger:
 			service: foo

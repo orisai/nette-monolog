@@ -399,9 +399,9 @@ final class MonologExtension extends CompilerExtension
 	 */
 	private function configureTracyHandler($value)
 	{
-		if (isset($value['handlers']['tracy']['service'])) {
+		if (isset($value['handlers']['tracyLogger']['service'])) {
 			$message = Message::create()
-				->withContext("Trying to configure '$this->name > handlers > tracy > service'.")
+				->withContext("Trying to configure '$this->name > handlers > tracyLogger > service'.")
 				->withProblem('This options is reserved and cannot be changed.')
 				->withSolution('Remove the option or choose different name for your handler.');
 
@@ -409,8 +409,8 @@ final class MonologExtension extends CompilerExtension
 				->withMessage($message);
 		}
 
-		if (isset($value['handlers']['tracy']) && is_array($value['handlers']['tracy'])) {
-			$value['handlers']['tracy']['service'] = '_validation_bypass_';
+		if (isset($value['handlers']['tracyLogger']) && is_array($value['handlers']['tracyLogger'])) {
+			$value['handlers']['tracyLogger']['service'] = '_validation_bypass_';
 		}
 
 		return $value;
@@ -419,9 +419,9 @@ final class MonologExtension extends CompilerExtension
 	private function processTracyHandlerConfig(stdClass $config): stdClass
 	{
 		if ($config->bridge->toTracy === false) {
-			if (isset($config->handlers['tracy']) && count((array) $config->handlers['tracy']) !== 1) {
+			if (isset($config->handlers['tracyLogger']) && count((array) $config->handlers['tracyLogger']) !== 1) {
 				$message = Message::create()
-					->withContext("Trying to configure '$this->name > handlers > tracy'.")
+					->withContext("Trying to configure '$this->name > handlers > tracyLogger'.")
 					->withProblem(
 						"This option is reserved for Tracy handler and can be configured only when '$this->name > bridge > toTracy' is enabled.",
 					)
@@ -431,13 +431,13 @@ final class MonologExtension extends CompilerExtension
 					->withMessage($message);
 			}
 
-			unset($config->handlers['tracy']);
+			unset($config->handlers['tracyLogger']);
 
 			return $config;
 		}
 
-		if (!isset($config->handlers['tracy'])) {
-			$config->handlers['tracy'] = (object) [
+		if (!isset($config->handlers['tracyLogger'])) {
+			$config->handlers['tracyLogger'] = (object) [
 				'enabled' => true,
 				'level' => (object) [
 					'debug' => null,
@@ -448,7 +448,7 @@ final class MonologExtension extends CompilerExtension
 			];
 		}
 
-		$config->handlers['tracy']->service = new Statement(PsrHandler::class, [
+		$config->handlers['tracyLogger']->service = new Statement(PsrHandler::class, [
 			new Reference($this->prefix('bridge.psrToTracy')),
 		]);
 

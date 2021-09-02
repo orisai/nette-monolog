@@ -13,6 +13,7 @@ use Nette\DI\InvalidConfigurationException;
 use OriNette\DI\Boot\ManualConfigurator;
 use OriNette\Monolog\HandlerAdapter;
 use OriNette\Monolog\LogFlusher;
+use OriNette\Monolog\LoggerGetter;
 use OriNette\Monolog\Tracy\LazyTracyToPsrLogger;
 use Orisai\Exceptions\Logic\InvalidArgument;
 use Orisai\Exceptions\Logic\InvalidState;
@@ -920,6 +921,40 @@ MSG);
 		self::assertSame(2, $fooChannel->closeCount);
 		self::assertSame(1, $barChannel->resetCount);
 		self::assertSame(1, $barChannel->closeCount);
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testStaticLogger(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/staticLogger.neon');
+
+		$container = $configurator->createContainer();
+
+		$mainChannel = $container->getService('monolog.channel.main');
+		self::assertInstanceOf(Logger::class, $mainChannel);
+
+		self::assertSame($mainChannel, LoggerGetter::get());
+	}
+
+	public function testStaticLoggerUnknown(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/staticLogger.unknown.neon');
+
+		$this->expectException(InvalidArgument::class);
+		$this->expectExceptionMessage(<<<'MSG'
+Context: Trying to configure 'monolog > staticLogger'.
+Problem: Given channel name 'main' is unknown.
+Solution: Use only name of channel listed in 'monolog > channels' or remove the
+          option.
+MSG);
+
+		$configurator->createContainer();
 	}
 
 }

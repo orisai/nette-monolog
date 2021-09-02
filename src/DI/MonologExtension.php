@@ -18,6 +18,7 @@ use Nette\Schema\Schema;
 use OriNette\DI\Definitions\DefinitionsLoader;
 use OriNette\Monolog\HandlerAdapter;
 use OriNette\Monolog\LogFlusher;
+use OriNette\Monolog\LoggerGetter;
 use OriNette\Monolog\Tracy\LazyTracyToPsrLogger;
 use Orisai\Exceptions\Logic\InvalidArgument;
 use Orisai\Exceptions\Logic\InvalidState;
@@ -116,6 +117,7 @@ final class MonologExtension extends CompilerExtension
 				'fromTracy' => Expect::listOf(Expect::string()),
 				'toTracy' => Expect::bool(false),
 			]),
+			'staticLogger' => Expect::anyOf(Expect::string(), Expect::null()),
 		])->before(fn ($value) => $this->configureTracyHandler($value));
 	}
 
@@ -130,6 +132,7 @@ final class MonologExtension extends CompilerExtension
 		$channelDefinitions = $this->registerChannels($config, $builder);
 
 		$this->registerLogFlusher($channelDefinitions, $builder);
+		$this->registerStaticLogger($channelDefinitions, $config);
 
 		$config = $this->processTracyHandlerConfig($config);
 		$this->registerHandlers($config, $loader);
@@ -205,6 +208,35 @@ final class MonologExtension extends CompilerExtension
 			->setFactory(LogFlusher::class, [
 				$channelDefinitionMap,
 			]);
+	}
+
+	/**
+	 * @param array<string, ServiceDefinition> $channelDefinitions
+	 */
+	private function registerStaticLogger(array $channelDefinitions, stdClass $config): void
+	{
+		$channelName = $config->staticLogger;
+
+		if ($channelName === null) {
+			return;
+		}
+
+		$channelDefinition = $channelDefinitions[$channelName] ?? null;
+
+		if ($channelDefinition === null) {
+			$message = Message::create()
+				->withContext("Trying to configure '$this->name > staticLogger'.")
+				->withProblem("Given channel name '$channelName' is unknown.")
+				->withSolution("Use only name of channel listed in '$this->name > channels' or remove the option.");
+
+			throw InvalidArgument::create()
+				->withMessage($message);
+		}
+
+		$init = $this->getInitialization();
+		$init->addBody(LoggerGetter::class . '::set($this->getService(?));', [
+			$channelDefinition->getName(),
+		]);
 	}
 
 	private function registerHandlers(stdClass $config, DefinitionsLoader $loader): void

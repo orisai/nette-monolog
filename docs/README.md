@@ -17,6 +17,7 @@
 	- [Tracy](#tracy)
 	- [Logtail](#logtail)
 - [Efficiency](#efficiency)
+- [Static logger access](#static-logger-access)
 
 ## Setup
 
@@ -534,3 +535,26 @@ class Example
 
 To enable buffering for handlers that may benefit from it and do not support buffering out of the box you may
 use `BufferHandler` or `FingersCrossedHandler`.
+
+## Static logger access
+
+When DI cannot be used, mostly in legacy code, logger can be accessed statically via `LoggerGetter`.
+
+To enable it, configure which channel should static logger use:
+
+```neon
+monolog:
+	staticLogger: main
+
+	channels:
+		main: []
+```
+
+Then just get logger and use it as usual:
+
+```php
+use OriNette\Monolog\LoggerGetter;
+
+$logger = LoggerGetter::get();
+$logger->info('Fart travels from your body at ~11 km/h.');
+```

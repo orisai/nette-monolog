@@ -20,11 +20,13 @@ use OriNette\Monolog\HandlerAdapter;
 use OriNette\Monolog\LogFlusher;
 use OriNette\Monolog\LoggerGetter;
 use OriNette\Monolog\Tracy\LazyTracyToPsrLogger;
+use OriNette\Monolog\Tracy\TracyPanelHandler;
 use Orisai\Exceptions\Logic\InvalidArgument;
 use Orisai\Exceptions\Logic\InvalidState;
 use Orisai\Exceptions\Message;
 use Psr\Log\LogLevel;
 use stdClass;
+use Tracy\Bar;
 use Tracy\Bridges\Psr\TracyToPsrLoggerAdapter;
 use Tracy\Debugger;
 use Tracy\ILogger;
@@ -116,9 +118,10 @@ final class MonologExtension extends CompilerExtension
 			'bridge' => Expect::structure([
 				'fromTracy' => Expect::listOf(Expect::string()),
 				'toTracy' => Expect::bool(false),
+				'tracyPanel' => Expect::bool(false),
 			]),
 			'staticLogger' => Expect::anyOf(Expect::string(), Expect::null()),
-		])->before(fn ($value) => $this->configureTracyHandler($value));
+		])->before(fn ($value) => $this->configureTracyHandlers($value));
 	}
 
 	public function loadConfiguration(): void
@@ -134,7 +137,8 @@ final class MonologExtension extends CompilerExtension
 		$this->registerLogFlusher($channelDefinitions, $builder);
 		$this->registerStaticLogger($channelDefinitions, $config);
 
-		$config = $this->processTracyHandlerConfig($config);
+		$config = $this->processTracyLoggerHandlerConfig($config);
+		$config = $this->processTracyPanelHandlerConfig($config);
 		$this->registerHandlers($config, $loader);
 
 		$processorDefinitions = $this->registerProcessors($config, $loader);
@@ -155,6 +159,7 @@ final class MonologExtension extends CompilerExtension
 		// Tracy may not be available in loadConfiguration(), depending on extension order
 		$this->registerToTracyBridge($config, $builder);
 		$this->registerFromTracyBridge($this->channelDefinitions, $config, $builder);
+		$this->registerTracyPanel($this->handlerDefinitions, $builder);
 	}
 
 	/**
@@ -397,26 +402,33 @@ final class MonologExtension extends CompilerExtension
 	 * @param mixed $value
 	 * @return mixed
 	 */
-	private function configureTracyHandler($value)
+	private function configureTracyHandlers($value)
 	{
-		if (isset($value['handlers']['tracyLogger']['service'])) {
-			$message = Message::create()
-				->withContext("Trying to configure '$this->name > handlers > tracyLogger > service'.")
-				->withProblem('This options is reserved and cannot be changed.')
-				->withSolution('Remove the option or choose different name for your handler.');
+		$handlers = [
+			'tracyLogger',
+			'tracyPanel',
+		];
 
-			throw InvalidArgument::create()
-				->withMessage($message);
-		}
+		foreach ($handlers as $handlerName) {
+			if (isset($value['handlers'][$handlerName]['service'])) {
+				$message = Message::create()
+					->withContext("Trying to configure '$this->name > handlers > $handlerName > service'.")
+					->withProblem('This options is reserved and cannot be changed.')
+					->withSolution('Remove the option or choose different name for your handler.');
 
-		if (isset($value['handlers']['tracyLogger']) && is_array($value['handlers']['tracyLogger'])) {
-			$value['handlers']['tracyLogger']['service'] = '_validation_bypass_';
+				throw InvalidArgument::create()
+					->withMessage($message);
+			}
+
+			if (isset($value['handlers'][$handlerName]) && is_array($value['handlers'][$handlerName])) {
+				$value['handlers'][$handlerName]['service'] = '_validation_bypass_';
+			}
 		}
 
 		return $value;
 	}
 
-	private function processTracyHandlerConfig(stdClass $config): stdClass
+	private function processTracyLoggerHandlerConfig(stdClass $config): stdClass
 	{
 		if ($config->bridge->toTracy === false) {
 			if (isset($config->handlers['tracyLogger']) && count((array) $config->handlers['tracyLogger']) !== 1) {
@@ -437,15 +449,7 @@ final class MonologExtension extends CompilerExtension
 		}
 
 		if (!isset($config->handlers['tracyLogger'])) {
-			$config->handlers['tracyLogger'] = (object) [
-				'enabled' => true,
-				'level' => (object) [
-					'debug' => null,
-					'production' => null,
-				],
-				'bubble' => true,
-				'processors' => [],
-			];
+			$config->handlers['tracyLogger'] = $this->createDynamicHandlerPlaceholderConfig();
 		}
 
 		$config->handlers['tracyLogger']->service = new Statement(PsrHandler::class, [
@@ -453,6 +457,34 @@ final class MonologExtension extends CompilerExtension
 		]);
 
 		return $config;
+	}
+
+	private function processTracyPanelHandlerConfig(stdClass $config): stdClass
+	{
+		if ($config->bridge->tracyPanel === false) {
+			return $config;
+		}
+
+		if (!isset($config->handlers['tracyPanel'])) {
+			$config->handlers['tracyPanel'] = $this->createDynamicHandlerPlaceholderConfig();
+		}
+
+		$config->handlers['tracyPanel']->service = new Statement(TracyPanelHandler::class);
+
+		return $config;
+	}
+
+	private function createDynamicHandlerPlaceholderConfig(): stdClass
+	{
+		return (object) [
+			'enabled' => true,
+			'level' => (object) [
+				'debug' => null,
+				'production' => null,
+			],
+			'bubble' => true,
+			'processors' => [],
+		];
 	}
 
 	private function registerToTracyBridge(stdClass $config, ContainerBuilder $builder): void
@@ -519,6 +551,42 @@ final class MonologExtension extends CompilerExtension
 		$init->addBody(Debugger::class . '::setLogger($this->getService(?));', [
 			$tracyToPsrDefinition->getName(),
 		]);
+	}
+
+	/**
+	 * @param array<string, Definition|Reference> $handlerDefinitions
+	 */
+	private function registerTracyPanel(array $handlerDefinitions, ContainerBuilder $builder): void
+	{
+		$handlerDefinition = $handlerDefinitions['tracyPanel'] ?? null;
+
+		if ($handlerDefinition === null) {
+			return;
+		}
+
+		$tracyBarDefinitionName = $builder->getByType(Bar::class);
+		if ($tracyBarDefinitionName === null) {
+			$this->throwTracyBridgeRequiresTracyInstalled('tracyPanel');
+		}
+
+		assert($handlerDefinition instanceof ServiceDefinition);
+		$handlerDefinition->addSetup(
+			[self::class, 'setupTracyHandlerPanel'],
+			[
+				"$this->name.panel",
+				$builder->getDefinition($tracyBarDefinitionName),
+				$handlerDefinition,
+			],
+		);
+	}
+
+	public static function setupTracyHandlerPanel(
+		string $name,
+		Bar $bar,
+		TracyPanelHandler $handler
+	): void
+	{
+		$bar->addPanel($handler, $name);
 	}
 
 	/**

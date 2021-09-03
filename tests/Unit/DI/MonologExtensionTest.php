@@ -15,6 +15,7 @@ use OriNette\Monolog\HandlerAdapter;
 use OriNette\Monolog\LogFlusher;
 use OriNette\Monolog\LoggerGetter;
 use OriNette\Monolog\Tracy\LazyTracyToPsrLogger;
+use OriNette\Monolog\Tracy\TracyPanelHandler;
 use Orisai\Exceptions\Logic\InvalidArgument;
 use Orisai\Exceptions\Logic\InvalidState;
 use Psr\Log\LoggerInterface;
@@ -23,6 +24,7 @@ use Tests\OriNette\Monolog\Doubles\ExtendedTestHandler;
 use Tests\OriNette\Monolog\Doubles\FlushTrackingLogger;
 use Tests\OriNette\Monolog\Doubles\SimpleTestHandler;
 use Tests\OriNette\Monolog\Doubles\TracyTestLogger;
+use Tracy\Bar;
 use Tracy\Debugger;
 use Tracy\ILogger;
 use function dirname;
@@ -862,6 +864,50 @@ MSG);
 			],
 			$this->filterRecords($handler->getRecords()),
 		);
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testTracyPanelBridge(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/tracy.tracyPanel.neon');
+
+		$container = $configurator->createContainer();
+
+		self::assertFalse($container->isCreated('tracy.bar'));
+
+		$logger = $container->getService('monolog.channel.main');
+		self::assertInstanceOf(Logger::class, $logger);
+		self::assertTrue($container->isCreated('tracy.bar'));
+
+		$handler = $container->getService('monolog.handler.tracyPanel');
+		self::assertInstanceOf(TracyPanelHandler::class, $handler);
+
+		self::assertSame([$handler], $logger->getHandlers());
+
+		$bar = $container->getByType(Bar::class);
+		self::assertSame($handler, $bar->getPanel('monolog.panel'));
+	}
+
+	public function testTracyPanelBridgeMissingService(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/tracy.tracyPanel.missingService.neon');
+
+		$this->expectException(InvalidState::class);
+		$this->expectExceptionMessage(<<<'MSG'
+Context: Trying to configure 'monolog > bridge > tracyPanel'.
+Problem: Option requires package 'tracy/tracy' to be installed and
+         'Tracy\ILogger' registered as a service.
+Solution: Ensure Tracy is installed and register as a service or remove the
+          configuration.
+MSG);
+
+		$configurator->createContainer();
 	}
 
 	/**

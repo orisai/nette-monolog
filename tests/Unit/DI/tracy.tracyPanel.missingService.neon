@@ -1,0 +1,11 @@
+extensions:
+	monolog: OriNette\Monolog\DI\MonologExtension
+
+monolog:
+	debug: true
+
+	channels:
+		main: []
+
+	bridge:
+		tracyPanel: true

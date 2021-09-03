@@ -396,7 +396,7 @@ and from Tracy to Monolog channels.
 
 For logging *from* Tracy *to* Monolog specify all the channels Tracy should log into.
 
-Be aware that *fromTracy* bridge works only for `Tracy\Debugger::log()`. Using `Tracy\ILogger->log()` will result into
+Be aware that `fromTracy` bridge works only for `Tracy\Debugger::log()`. Using `Tracy\ILogger->log()` will result into
 logging only by enabled Monolog channels. This limitation can be simply worked around by enabling *toTracy* bridge.
 
 ```neon
@@ -468,6 +468,21 @@ mapped:
 	</tr>
 </tbody>
 </table>
+
+To show logs in Tracy panel, enable `tracyPanel` option.
+
+Under the hood extension registers [handler](#handlers) with reserved name `tracyPanel`. This handler can be configured
+as any other (except the preset `service` key) so you can e.g. allow or forbid this handler for specific channels.
+
+```neon
+monolog:
+	bridge:
+
+		# Add panel to Tracy bar
+		# true|false
+		# Default: false
+		tracyPanel: %debugMode%
+```
 
 ### Logtail
 

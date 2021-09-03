@@ -1,0 +1,22 @@
+<?php declare(strict_types = 1);
+
+use Tracy\Dumper;
+
+/** @var array<array<mixed>> $records */
+
+?>
+<h1>Logs (<?= count($records) ?>)</h1>
+
+<div class="tracy-inner">
+	<div class="tracy-inner-container">
+		<table>
+			<?php foreach ($records as $record): ?>
+				<tr>
+					<td>
+						<?= Dumper::toHtml($record) ?>
+					</td>
+				</tr>
+			<?php endforeach; ?>
+		</table>
+	</div>
+</div>

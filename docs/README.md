@@ -14,8 +14,12 @@
 - [Processors](#processors)
 - [Formatters](#formatters)
 - [Integrations](#integrations)
-	- [Tracy](#tracy)
-	- [Logtail](#logtail)
+    - [Tracy](#tracy)
+        - [Logging from Tracy](#logging-from-tracy)
+        - [Logging to Tracy](#logging-to-tracy)
+        - [Error level mapping](#error-level-mapping)
+        - [Tracy bar panel](#tracy-bar-panel)
+    - [Logtail](#logtail)
 - [Efficiency](#efficiency)
 - [Static logger access](#static-logger-access)
 
@@ -394,6 +398,8 @@ you are seeking for something more (mainly Nette-related), check our integration
 [Tracy](https://github.com/nette/tracy/) debugger integration allows you to log messages to Tracy from Monolog channels
 and from Tracy to Monolog channels.
 
+#### Logging from Tracy
+
 For logging *from* Tracy *to* Monolog specify all the channels Tracy should log into.
 
 Be aware that `fromTracy` bridge works only for `Tracy\Debugger::log()`. Using `Tracy\ILogger->log()` will result into
@@ -411,6 +417,8 @@ monolog:
 			- anotherChannelName
 ```
 
+#### Logging to Tracy
+
 For logging *to* Tracy *from* Monolog, enable `toTracy` option.
 
 Under the hood extension registers [handler](#handlers) with reserved name `tracyLogger`. This handler can be configured
@@ -425,6 +433,8 @@ monolog:
 		# Default: false
 		toTracy: true
 ```
+
+#### Error level mapping
 
 Tracy don't have same error levels as Monolog, following comparison table should help you understand how levels are
 mapped:
@@ -468,6 +478,8 @@ mapped:
 	</tr>
 </tbody>
 </table>
+
+#### Tracy bar panel
 
 To show logs in Tracy panel, enable `tracyPanel` option.
 

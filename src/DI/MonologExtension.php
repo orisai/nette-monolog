@@ -268,12 +268,12 @@ final class MonologExtension extends CompilerExtension
 	private function addHandlersToChannels(array $channelDefinitions, array $handlerDefinitions, stdClass $config): void
 	{
 		foreach ($channelDefinitions as $channelName => $channelDefinition) {
-			$channelConfig = $config->channels[$channelName];
+			$handlersConfig = $config->channels[$channelName]->handlers;
 
 			$filteredHandlerDefinitions = $this->filterAllowedDefinitions(
 				$handlerDefinitions,
-				$channelConfig->handlers->allowed,
-				$channelConfig->handlers->forbidden,
+				$handlersConfig->allowed,
+				$handlersConfig->forbidden,
 				"channels > $channelName > handlers > allowed",
 				"channels > $channelName > handlers > forbidden",
 				'handlers',
@@ -379,12 +379,12 @@ final class MonologExtension extends CompilerExtension
 	): void
 	{
 		foreach ($channelDefinitions as $channelName => $channelDefinition) {
-			$channelConfig = $config->channels[$channelName];
+			$processorsConfig = $config->channels[$channelName]->processors;
 
 			$filteredProcessorDefinitions = $this->filterAllowedDefinitions(
 				$processorDefinitions,
-				$channelConfig->processors->allowed,
-				$channelConfig->processors->forbidden,
+				$processorsConfig->allowed,
+				$processorsConfig->forbidden,
 				"channels > $channelName > processors > allowed",
 				"channels > $channelName > processors > forbidden",
 				'processors',

@@ -499,15 +499,18 @@ monolog:
 ### Logtail
 
 [Logtail](https://logtail.com) is a fast and flexible logging service with great UX. While they have their own Monolog
-integration we felt need for something more robust. Our handler utilizes symfony/http-client and lazy-writes logs in
-batches to provide the best possible experience.
+integration we felt need for something more robust. Our handler utilizes PSR-18 and lazy-writes logs in batches to
+provide the best possible experience.
+
+To use `LogtailHandler` you will also need an PSR-18 client, e.g. from
+[orisai/nette-http-client](https://github.com/orisai/nette-http-client).
 
 ```neon
 monolog:
 	handlers:
 		logtail:
 			service: OriNette\Monolog\Bridge\Logtail\LogtailHandler(
-				OriNette\Monolog\Bridge\Logtail\LogtailClient::create(%logtail.token%)
+				OriNette\Monolog\Bridge\Logtail\LogtailClient(%logtail.token%)
 			)
 
 parameters:

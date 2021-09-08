@@ -33,6 +33,7 @@
 		"brianium/paratest": "^6.3.0",
 		"infection/infection": "^0.25.0",
 		"orisai/coding-standard": "^2.0.0",
+		"orisai/nette-http-client": "^1.0.0",
 		"phpstan/extension-installer": "^1.0.0",
 		"phpstan/phpstan": "^0.12.0",
 		"phpstan/phpstan-deprecation-rules": "^0.12.0",

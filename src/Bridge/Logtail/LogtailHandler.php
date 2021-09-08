@@ -50,7 +50,7 @@ final class LogtailHandler extends AbstractProcessingHandler
 	private function flush(): void
 	{
 		if ($this->records !== []) {
-			$this->client->logBatch($this->records);
+			$this->client->log($this->records);
 			$this->records = [];
 		}
 	}

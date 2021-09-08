@@ -3,72 +3,55 @@
 namespace OriNette\Monolog\Bridge\Logtail;
 
 use Nette\Utils\Json;
-use Orisai\Utils\Dependencies\Dependencies;
-use Orisai\Utils\Dependencies\Exception\PackageRequired;
-use Symfony\Component\HttpClient\HttpClient;
-use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Psr\Http\Client\ClientExceptionInterface;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\StreamFactoryInterface;
 
 final class LogtailClient
 {
 
-	private HttpClientInterface $httpClient;
+	private string $token;
 
-	public function __construct(HttpClientInterface $httpClient)
+	private string $uri = 'https://in.logtail.com/';
+
+	private ClientInterface $client;
+
+	private RequestFactoryInterface $requestFactory;
+
+	private StreamFactoryInterface $streamFactory;
+
+	public function __construct(
+		string $token,
+		ClientInterface $client,
+		RequestFactoryInterface $requestFactory,
+		StreamFactoryInterface $streamFactory
+	)
 	{
-		$this->httpClient = $httpClient;
+		$this->token = $token;
+		$this->client = $client;
+		$this->requestFactory = $requestFactory;
+		$this->streamFactory = $streamFactory;
 	}
 
-	public static function create(string $token, ?string $uri = null): self
+	public function setUri(string $uri): void
 	{
-		if (!Dependencies::isPackageLoaded('symfony/http-client')) {
-			throw PackageRequired::forClass(['symfony/http-client'], self::class);
-		}
-
-		$httpClient = HttpClient::createForBaseUri(
-			$uri ?? 'https://in.logtail.com/',
-			[
-				'auth_bearer' => $token,
-			],
-		);
-
-		return new self($httpClient);
-	}
-
-	/**
-	 * @param array<mixed> $record
-	 * @throws TransportExceptionInterface
-	 */
-	public function log(array $record): void
-	{
-		$this->doRequest($record);
+		$this->uri = $uri;
 	}
 
 	/**
-	 * @param array<array<mixed>> $records
-	 * @throws TransportExceptionInterface
+	 * @param array<mixed>|array<array<mixed>> $data
+	 * @throws ClientExceptionInterface
 	 */
-	public function logBatch(array $records): void
+	public function log(array $data): void
 	{
-		$this->doRequest($records);
-	}
+		$request = $this->requestFactory->createRequest('POST', $this->uri);
+		$request = $request
+			->withHeader('auth_bearer', $this->token)
+			->withHeader('content-type', 'application/json')
+			->withBody($this->streamFactory->createStream(Json::encode($data)));
 
-	/**
-	 * @param mixed $data
-	 * @throws TransportExceptionInterface
-	 */
-	private function doRequest($data): void
-	{
-		$this->httpClient->request(
-			'POST',
-			'',
-			[
-				'headers' => [
-					'content-type' => 'application/json',
-				],
-				'body' => Json::encode($data),
-			],
-		);
+		$this->client->sendRequest($request);
 	}
 
 }

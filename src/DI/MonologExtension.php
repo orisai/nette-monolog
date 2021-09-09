@@ -239,7 +239,7 @@ final class MonologExtension extends CompilerExtension
 		}
 
 		$init = $this->getInitialization();
-		$init->addBody(StaticLoggerGetter::class . '::set($this->getService(?));', [
+		$init->addBody(StaticLoggerGetter::class . '::set(?, $this);', [
 			$channelDefinition->getName(),
 		]);
 	}

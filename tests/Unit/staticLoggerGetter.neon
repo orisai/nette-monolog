@@ -1,0 +1,2 @@
+services:
+	logger: Psr\Log\Test\TestLogger

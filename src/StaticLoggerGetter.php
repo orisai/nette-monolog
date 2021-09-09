@@ -2,13 +2,19 @@
 
 namespace OriNette\Monolog;
 
+use Nette\DI\Container;
 use OriNette\Monolog\DI\MonologExtension;
 use Orisai\Exceptions\Logic\InvalidState;
 use Orisai\Exceptions\Message;
 use Psr\Log\LoggerInterface;
+use function assert;
 
 final class StaticLoggerGetter
 {
+
+	private static ?string $serviceName = null;
+
+	private static Container $container;
 
 	private static ?LoggerInterface $logger = null;
 
@@ -17,14 +23,19 @@ final class StaticLoggerGetter
 		// Static class
 	}
 
-	public static function set(LoggerInterface $logger): void
+	public static function set(string $serviceName, Container $container): void
 	{
-		self::$logger = $logger;
+		self::$serviceName = $serviceName;
+		self::$container = $container;
 	}
 
 	public static function get(): LoggerInterface
 	{
-		if (self::$logger === null) {
+		if (self::$logger !== null) {
+			return self::$logger;
+		}
+
+		if (self::$serviceName === null) {
 			$selfClass = self::class;
 			$extClass = MonologExtension::class;
 			$message = Message::create()
@@ -36,7 +47,10 @@ final class StaticLoggerGetter
 				->withMessage($message);
 		}
 
-		return self::$logger;
+		$logger = self::$container->getService(self::$serviceName);
+		assert($logger instanceof LoggerInterface);
+
+		return self::$logger = $logger;
 	}
 
 }

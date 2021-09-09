@@ -2,18 +2,20 @@
 
 namespace Tests\OriNette\Monolog\Unit;
 
-use Monolog\Logger;
+use OriNette\DI\Boot\ManualConfigurator;
 use OriNette\Monolog\StaticLoggerGetter;
 use Orisai\Exceptions\Logic\InvalidState;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
+use function dirname;
 
 /**
  * @runTestsInSeparateProcesses
  */
-final class LoggerGetterTest extends TestCase
+final class StaticLoggerGetterTest extends TestCase
 {
 
-	public function testOk(): void
+	public function testFailure(): void
 	{
 		$this->expectException(InvalidState::class);
 		$this->expectExceptionMessage(<<<'MSG'
@@ -26,11 +28,19 @@ MSG);
 		StaticLoggerGetter::get();
 	}
 
-	public function testFailure(): void
+	public function testOk(): void
 	{
-		$logger = new Logger('test');
-		StaticLoggerGetter::set($logger);
+		$configurator = new ManualConfigurator(dirname(__DIR__, 2));
+		$configurator->setDebugMode(true);
 
+		$configurator->addConfig(__DIR__ . '/staticLoggerGetter.neon');
+
+		$container = $configurator->createContainer();
+		$logger = $container->getByType(LoggerInterface::class);
+
+		StaticLoggerGetter::set('logger', $container);
+
+		self::assertSame($logger, StaticLoggerGetter::get());
 		self::assertSame($logger, StaticLoggerGetter::get());
 	}
 

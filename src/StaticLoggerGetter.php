@@ -7,7 +7,7 @@ use Orisai\Exceptions\Logic\InvalidState;
 use Orisai\Exceptions\Message;
 use Psr\Log\LoggerInterface;
 
-final class LoggerGetter
+final class StaticLoggerGetter
 {
 
 	private static ?LoggerInterface $logger = null;

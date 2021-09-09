@@ -3,7 +3,7 @@
 namespace Tests\OriNette\Monolog\Unit;
 
 use Monolog\Logger;
-use OriNette\Monolog\LoggerGetter;
+use OriNette\Monolog\StaticLoggerGetter;
 use Orisai\Exceptions\Logic\InvalidState;
 use PHPUnit\Framework\TestCase;
 
@@ -17,21 +17,21 @@ final class LoggerGetterTest extends TestCase
 	{
 		$this->expectException(InvalidState::class);
 		$this->expectExceptionMessage(<<<'MSG'
-Context: Trying to get logger from OriNette\Monolog\LoggerGetter.
+Context: Trying to get logger from OriNette\Monolog\StaticLoggerGetter.
 Problem: Logger is not set.
 Solution: Enable getter via 'staticGetter' option of
           OriNette\Monolog\DI\MonologExtension.
 MSG);
 
-		LoggerGetter::get();
+		StaticLoggerGetter::get();
 	}
 
 	public function testFailure(): void
 	{
 		$logger = new Logger('test');
-		LoggerGetter::set($logger);
+		StaticLoggerGetter::set($logger);
 
-		self::assertSame($logger, LoggerGetter::get());
+		self::assertSame($logger, StaticLoggerGetter::get());
 	}
 
 }

@@ -568,7 +568,7 @@ use `BufferHandler` or `FingersCrossedHandler`.
 
 ## Static logger access
 
-When DI cannot be used, mostly in legacy code, logger can be accessed statically via `LoggerGetter`.
+When DI cannot be used, mostly in legacy code, logger can be accessed statically via `StaticLoggerGetter`.
 
 To enable it, configure which channel should static logger use:
 
@@ -583,8 +583,8 @@ monolog:
 Then just get logger and use it as usual:
 
 ```php
-use OriNette\Monolog\LoggerGetter;
+use OriNette\Monolog\StaticLoggerGetter;
 
-$logger = LoggerGetter::get();
+$logger = StaticLoggerGetter::get();
 $logger->info('Fart travels from your body at ~11 km/h.');
 ```

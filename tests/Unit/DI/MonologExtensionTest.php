@@ -13,7 +13,7 @@ use Nette\DI\InvalidConfigurationException;
 use OriNette\DI\Boot\ManualConfigurator;
 use OriNette\Monolog\HandlerAdapter;
 use OriNette\Monolog\LogFlusher;
-use OriNette\Monolog\LoggerGetter;
+use OriNette\Monolog\StaticLoggerGetter;
 use OriNette\Monolog\Tracy\LazyTracyToPsrLogger;
 use OriNette\Monolog\Tracy\TracyPanelHandler;
 use Orisai\Exceptions\Logic\InvalidArgument;
@@ -983,7 +983,7 @@ MSG);
 		$mainChannel = $container->getService('monolog.channel.main');
 		self::assertInstanceOf(Logger::class, $mainChannel);
 
-		self::assertSame($mainChannel, LoggerGetter::get());
+		self::assertSame($mainChannel, StaticLoggerGetter::get());
 	}
 
 	public function testStaticGetterUnknown(): void

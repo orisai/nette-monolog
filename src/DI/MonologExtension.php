@@ -18,7 +18,7 @@ use Nette\Schema\Schema;
 use OriNette\DI\Definitions\DefinitionsLoader;
 use OriNette\Monolog\HandlerAdapter;
 use OriNette\Monolog\LogFlusher;
-use OriNette\Monolog\LoggerGetter;
+use OriNette\Monolog\StaticLoggerGetter;
 use OriNette\Monolog\Tracy\LazyTracyToPsrLogger;
 use OriNette\Monolog\Tracy\TracyPanelHandler;
 use Orisai\Exceptions\Logic\InvalidArgument;
@@ -239,7 +239,7 @@ final class MonologExtension extends CompilerExtension
 		}
 
 		$init = $this->getInitialization();
-		$init->addBody(LoggerGetter::class . '::set($this->getService(?));', [
+		$init->addBody(StaticLoggerGetter::class . '::set($this->getService(?));', [
 			$channelDefinition->getName(),
 		]);
 	}

@@ -8,10 +8,8 @@ use OriNette\DI\Services\ServiceManager;
 final class LogFlusher extends ServiceManager
 {
 
-	private bool $isFirstRun = true;
-
-	/** @var array<int, int|string> */
-	private array $uninitialized;
+	/** @var array<int, int|string>|null */
+	private ?array $uninitialized = null;
 
 	/** @var array<int, Logger> */
 	private array $loggers = [];
@@ -41,9 +39,8 @@ final class LogFlusher extends ServiceManager
 	 */
 	private function getLoggers(): array
 	{
-		if ($this->isFirstRun) {
+		if ($this->uninitialized === null) {
 			$this->uninitialized = $this->getKeys();
-			$this->isFirstRun = false;
 		}
 
 		foreach ($this->uninitialized as $i => $key) {

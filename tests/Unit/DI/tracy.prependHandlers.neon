@@ -1,0 +1,21 @@
+extensions:
+	monolog: OriNette\Monolog\DI\MonologExtension
+	tracy: Tracy\Bridges\Nette\TracyExtension(%debugMode%, %consoleMode%)
+
+monolog:
+	debug: true
+
+	channels:
+		main: []
+
+	handlers:
+		test:
+			service: Monolog\Handler\TestHandler
+		tracyPanel:
+			enabled: true
+		tracyLogger:
+			enabled: true
+
+	bridge:
+		toTracy: true
+		tracyPanel: true

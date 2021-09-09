@@ -137,8 +137,9 @@ final class MonologExtension extends CompilerExtension
 		$this->registerLogFlusher($channelDefinitions, $builder);
 		$this->registerStaticGetter($channelDefinitions, $config);
 
-		$config = $this->processTracyLoggerHandlerConfig($config);
 		$config = $this->processTracyPanelHandlerConfig($config);
+		$config = $this->processTracyLoggerHandlerConfig($config);
+
 		$this->registerHandlers($config, $loader);
 
 		$processorDefinitions = $this->registerProcessors($config, $loader);
@@ -456,6 +457,10 @@ final class MonologExtension extends CompilerExtension
 			new Reference($this->prefix('bridge.psrToTracy')),
 		]);
 
+		$panel = $config->handlers['tracyLogger'];
+		unset($config->handlers['tracyLogger']);
+		$config->handlers = ['tracyLogger' => $panel] + $config->handlers;
+
 		return $config;
 	}
 
@@ -470,6 +475,10 @@ final class MonologExtension extends CompilerExtension
 		}
 
 		$config->handlers['tracyPanel']->service = new Statement(TracyPanelHandler::class);
+
+		$panel = $config->handlers['tracyPanel'];
+		unset($config->handlers['tracyPanel']);
+		$config->handlers = ['tracyPanel' => $panel] + $config->handlers;
 
 		return $config;
 	}

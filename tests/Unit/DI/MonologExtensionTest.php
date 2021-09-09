@@ -911,6 +911,30 @@ MSG);
 	}
 
 	/**
+	 * @runInSeparateProcess
+	 */
+	public function testTracyHandlersArePrepended(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/tracy.prependHandlers.neon');
+
+		$container = $configurator->createContainer();
+
+		$logger = $container->getService('monolog.channel.main');
+		self::assertInstanceOf(Logger::class, $logger);
+
+		self::assertSame(
+			[
+				$container->getService('monolog.handler.tracyLogger'),
+				$container->getService('monolog.handler.tracyPanel'),
+				$container->getService('monolog.handler.test'),
+			],
+			$logger->getHandlers(),
+		);
+	}
+
+	/**
 	 * @param array<mixed> $records
 	 * @return array<mixed>
 	 */

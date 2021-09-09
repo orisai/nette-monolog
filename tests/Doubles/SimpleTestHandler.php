@@ -4,6 +4,7 @@ namespace Tests\OriNette\Monolog\Doubles;
 
 use Monolog\Handler\Handler;
 use Monolog\Logger;
+use Monolog\ResettableInterface;
 use Psr\Log\LogLevel;
 
 /**
@@ -13,7 +14,7 @@ use Psr\Log\LogLevel;
  * @phpstan-import-type LevelName from Logger
  * @phpstan-import-type Record from Logger
  */
-class SimpleTestHandler extends Handler
+class SimpleTestHandler extends Handler implements ResettableInterface
 {
 
 	private int $level;
@@ -62,6 +63,17 @@ class SimpleTestHandler extends Handler
 	public function getRecords(): array
 	{
 		return $this->records;
+	}
+
+	public function reset(): void
+	{
+		$this->records = [];
+	}
+
+	public function close(): void
+	{
+		parent::close();
+		$this->records = [];
 	}
 
 }

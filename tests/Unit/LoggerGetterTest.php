@@ -19,7 +19,7 @@ final class LoggerGetterTest extends TestCase
 		$this->expectExceptionMessage(<<<'MSG'
 Context: Trying to get logger from OriNette\Monolog\LoggerGetter.
 Problem: Logger is not set.
-Solution: Enable getter via 'staticLogger' option of
+Solution: Enable getter via 'staticGetter' option of
           OriNette\Monolog\DI\MonologExtension.
 MSG);
 

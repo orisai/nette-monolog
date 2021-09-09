@@ -574,7 +574,7 @@ To enable it, configure which channel should static logger use:
 
 ```neon
 monolog:
-	staticLogger: main
+	staticGetter: main
 
 	channels:
 		main: []

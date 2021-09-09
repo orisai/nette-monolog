@@ -972,11 +972,11 @@ MSG);
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testStaticLogger(): void
+	public function testStaticGetter(): void
 	{
 		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
 		$configurator->setDebugMode(true);
-		$configurator->addConfig(__DIR__ . '/staticLogger.neon');
+		$configurator->addConfig(__DIR__ . '/staticGetter.neon');
 
 		$container = $configurator->createContainer();
 
@@ -986,15 +986,15 @@ MSG);
 		self::assertSame($mainChannel, LoggerGetter::get());
 	}
 
-	public function testStaticLoggerUnknown(): void
+	public function testStaticGetterUnknown(): void
 	{
 		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
 		$configurator->setDebugMode(true);
-		$configurator->addConfig(__DIR__ . '/staticLogger.unknown.neon');
+		$configurator->addConfig(__DIR__ . '/staticGetter.unknown.neon');
 
 		$this->expectException(InvalidArgument::class);
 		$this->expectExceptionMessage(<<<'MSG'
-Context: Trying to configure 'monolog > staticLogger'.
+Context: Trying to configure 'monolog > staticGetter'.
 Problem: Given channel name 'main' is unknown.
 Solution: Use only name of channel listed in 'monolog > channels' or remove the
           option.

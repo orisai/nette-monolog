@@ -120,7 +120,7 @@ final class MonologExtension extends CompilerExtension
 				'toTracy' => Expect::bool(false),
 				'tracyPanel' => Expect::bool(false),
 			]),
-			'staticLogger' => Expect::anyOf(Expect::string(), Expect::null()),
+			'staticGetter' => Expect::anyOf(Expect::string(), Expect::null()),
 		])->before(fn ($value) => $this->configureTracyHandlers($value));
 	}
 
@@ -135,7 +135,7 @@ final class MonologExtension extends CompilerExtension
 		$channelDefinitions = $this->registerChannels($config, $builder);
 
 		$this->registerLogFlusher($channelDefinitions, $builder);
-		$this->registerStaticLogger($channelDefinitions, $config);
+		$this->registerStaticGetter($channelDefinitions, $config);
 
 		$config = $this->processTracyLoggerHandlerConfig($config);
 		$config = $this->processTracyPanelHandlerConfig($config);
@@ -218,9 +218,9 @@ final class MonologExtension extends CompilerExtension
 	/**
 	 * @param array<string, ServiceDefinition> $channelDefinitions
 	 */
-	private function registerStaticLogger(array $channelDefinitions, stdClass $config): void
+	private function registerStaticGetter(array $channelDefinitions, stdClass $config): void
 	{
-		$channelName = $config->staticLogger;
+		$channelName = $config->staticGetter;
 
 		if ($channelName === null) {
 			return;
@@ -230,7 +230,7 @@ final class MonologExtension extends CompilerExtension
 
 		if ($channelDefinition === null) {
 			$message = Message::create()
-				->withContext("Trying to configure '$this->name > staticLogger'.")
+				->withContext("Trying to configure '$this->name > staticGetter'.")
 				->withProblem("Given channel name '$channelName' is unknown.")
 				->withSolution("Use only name of channel listed in '$this->name > channels' or remove the option.");
 

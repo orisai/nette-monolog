@@ -4,6 +4,6 @@ extensions:
 monolog:
 	debug: true
 
-	staticLogger: main
+	staticGetter: main
 
 	channels: []

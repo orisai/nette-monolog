@@ -30,7 +30,7 @@ final class LoggerGetter
 			$message = Message::create()
 				->withContext("Trying to get logger from $selfClass.")
 				->withProblem('Logger is not set.')
-				->withSolution("Enable getter via 'staticLogger' option of $extClass.");
+				->withSolution("Enable getter via 'staticGetter' option of $extClass.");
 
 			throw InvalidState::create()
 				->withMessage($message);

@@ -1,2 +1,2 @@
 services:
-	logger: Psr\Log\Test\TestLogger
+	logger: Tests\OriNette\Monolog\Doubles\TestLogger

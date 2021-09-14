@@ -5,7 +5,7 @@ namespace Tests\OriNette\Monolog\Unit\Tracy;
 use OriNette\DI\Boot\ManualConfigurator;
 use OriNette\Monolog\Tracy\LazyTracyToPsrLogger;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\Test\TestLogger;
+use Tests\OriNette\Monolog\Doubles\TestLogger;
 use function dirname;
 
 final class LazyTracyToPsrLoggerTest extends TestCase

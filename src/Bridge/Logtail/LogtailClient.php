@@ -47,8 +47,8 @@ final class LogtailClient
 	{
 		$request = $this->requestFactory->createRequest('POST', $this->uri);
 		$request = $request
-			->withHeader('auth_bearer', $this->token)
-			->withHeader('content-type', 'application/json')
+			->withHeader('Authorization', "Bearer $this->token")
+			->withHeader('Content-Type', 'application/json')
 			->withBody($this->streamFactory->createStream(Json::encode($data)));
 
 		$this->client->sendRequest($request);

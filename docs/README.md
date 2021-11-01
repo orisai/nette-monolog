@@ -513,6 +513,11 @@ monolog:
 				OriNette\Monolog\Bridge\Logtail\LogtailClient(%logtail.token%)
 			)
 
+			# You will probably don't want anything lower than warnings in logtail
+			# Only debug is configured because production is set to warning by default
+			level:
+				debug: warning
+
 parameters:
 	logtail:
 		token: <YOUR_LOGTAIL_TOKEN>

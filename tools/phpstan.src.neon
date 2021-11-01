@@ -2,12 +2,12 @@ includes:
 	- phpstan.base.neon
 
 parameters:
-	level: max
+	level: 8
 	resultCachePath: %currentWorkingDirectory%/var/tools/PHPStan/resultCache.src.php
 
 	ignoreErrors:
 		# Imported types don't work quite well
-		- message: '#^Parameter \#1 \$record of (.*)HandlerInterface\:\:handle\(\) expects array\((.*)\), array given\.$#'
+		- message: '#^Parameter \#1 \$record of (.*)HandlerInterface\:\:handle\(\) expects array{(.*)}, array given\.$#'
 		  path: ../src/HandlerAdapter.php
 		  count: 1
 		- message: '#^Method (.*)\:\:getProcessors\(\) should return array(.+) but returns array(.+)\.$#'

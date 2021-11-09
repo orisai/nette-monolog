@@ -530,7 +530,7 @@ for usual use cases but also increases memory usage for long-running task. To en
 flush records occasionally, use `OriNette\Monolog\LogFlusher`. It has available same `reset()` and `close()` methods as
 `Monolog\Logger` but also ensures method is called for all used loggers.
 
-If you have *nette/application* installed, `LogFlusher->log()` is automatically called on `Application::$onShutdown`
+If you have *nette/application* installed, `LogFlusher->log()` is automatically called during `Application::$onShutdown`
 event.
 
 ```php

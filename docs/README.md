@@ -43,7 +43,7 @@ Configure debug mode. How is debug mode used is explained in [log levels](#log-l
 ```neon
 monolog:
 
-	# true | false
+	# bool
 	debug: %debugMode%
 ```
 
@@ -125,7 +125,7 @@ monolog:
 
 		main:
 			# Autowire channel service
-			# true|false|class-string<Monolog\Logger>
+			# bool|class-string<Monolog\Logger>
 			# Default: false
 			autowired: true
 
@@ -176,7 +176,7 @@ monolog:
 
 		console:
 			# Enable handler?
-			# true|false
+			# bool
 			# Default: true
 			enabled: %consoleMode%
 
@@ -197,7 +197,7 @@ monolog:
 		mail:
 			# Should successful handler pass record to next handler?
 			# If not then successful handler is the last one which logs the record
-			# true|false
+			# bool
 			# Default: true
 			bubble: false
 
@@ -245,7 +245,7 @@ monolog:
 
 	# Affects whether level > debug or level > production is used
 	# - used for both root and handler `level` option
-	# true|false
+	# bool
 	# Required
 	debug: %debugMode%
 ```
@@ -429,7 +429,7 @@ monolog:
 	bridge:
 
 		# Log from Monolog channels to Tracy
-		# true|false
+		# bool
 		# Default: false
 		toTracy: true
 ```
@@ -491,7 +491,7 @@ monolog:
 	bridge:
 
 		# Add panel to Tracy bar
-		# true|false
+		# bool
 		# Default: false
 		tracyPanel: %debugMode%
 ```

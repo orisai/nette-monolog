@@ -1,0 +1,12 @@
+extensions:
+	monolog: OriNette\Monolog\DI\MonologExtension
+	application: Nette\Bridges\ApplicationDI\ApplicationExtension
+	http: Nette\Bridges\HttpDI\HttpExtension
+	router: Nette\Bridges\ApplicationDI\RoutingExtension
+
+monolog:
+	debug: true
+
+	channels:
+		foo:
+			autowired: Tests\OriNette\Monolog\Doubles\FlushTrackingLogger

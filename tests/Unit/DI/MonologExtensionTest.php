@@ -9,6 +9,7 @@ use Monolog\Logger;
 use Monolog\Processor\ProcessorInterface;
 use Monolog\Processor\TagProcessor;
 use Monolog\Test\TestCase;
+use Nette\Application\Application;
 use Nette\DI\InvalidConfigurationException;
 use OriNette\DI\Boot\ManualConfigurator;
 use OriNette\Monolog\HandlerAdapter;
@@ -991,6 +992,35 @@ MSG);
 		self::assertSame(2, $fooChannel->closeCount);
 		self::assertSame(1, $barChannel->resetCount);
 		self::assertSame(1, $barChannel->closeCount);
+	}
+
+	public function testLogFlusherApplicationBridge(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setDebugMode(true);
+		$configurator->addConfig(__DIR__ . '/logFlusher.applicationBridge.neon');
+
+		$container = $configurator->createContainer();
+
+		$application = $container->getByType(Application::class);
+		self::assertFalse($container->isCreated('monolog.logFlusher'));
+
+		$channel = $container->getService('monolog.channel.foo');
+		self::assertInstanceOf(FlushTrackingLogger::class, $channel);
+		self::assertSame(0, $channel->resetCount);
+		self::assertSame(0, $channel->closeCount);
+
+		$application->run();
+
+		self::assertTrue($container->isCreated('monolog.logFlusher'));
+
+		self::assertSame(1, $channel->resetCount);
+		self::assertSame(0, $channel->closeCount);
+
+		$application->run();
+
+		self::assertSame(2, $channel->resetCount);
+		self::assertSame(0, $channel->closeCount);
 	}
 
 	/**

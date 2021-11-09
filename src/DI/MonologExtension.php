@@ -6,6 +6,7 @@ use Monolog\Handler\AbstractHandler;
 use Monolog\Handler\ProcessableHandlerInterface;
 use Monolog\Handler\PsrHandler;
 use Monolog\Logger;
+use Nette\Application\Application;
 use Nette\DI\CompilerExtension;
 use Nette\DI\ContainerBuilder;
 use Nette\DI\Definitions\Definition;
@@ -65,6 +66,8 @@ final class MonologExtension extends CompilerExtension
 
 	/** @var array<Definition|Reference> */
 	private array $handlerDefinitions;
+
+	private ServiceDefinition $logFlusherDefinition;
 
 	private function getFilteredDefinitionsSchema(): Schema
 	{
@@ -134,7 +137,7 @@ final class MonologExtension extends CompilerExtension
 
 		$channelDefinitions = $this->registerChannels($config, $builder);
 
-		$this->registerLogFlusher($channelDefinitions, $builder);
+		$this->logFlusherDefinition = $this->registerLogFlusher($channelDefinitions, $builder);
 		$this->registerStaticGetter($channelDefinitions, $config);
 
 		$config = $this->processTracyPanelHandlerConfig($config);
@@ -161,6 +164,8 @@ final class MonologExtension extends CompilerExtension
 		$this->registerToTracyBridge($config, $builder);
 		$this->registerFromTracyBridge($this->channelDefinitions, $config, $builder);
 		$this->registerTracyPanel($this->handlerDefinitions, $builder);
+
+		$this->addFlusherToApplicationShutdown($this->logFlusherDefinition, $builder);
 	}
 
 	/**
@@ -203,14 +208,14 @@ final class MonologExtension extends CompilerExtension
 	/**
 	 * @param array<string, ServiceDefinition> $channelDefinitions
 	 */
-	private function registerLogFlusher(array $channelDefinitions, ContainerBuilder $builder): void
+	private function registerLogFlusher(array $channelDefinitions, ContainerBuilder $builder): ServiceDefinition
 	{
 		$channelDefinitionMap = [];
 		foreach ($channelDefinitions as $channelName => $channelDefinition) {
 			$channelDefinitionMap[$channelName] = $channelDefinition->getName();
 		}
 
-		$builder->addDefinition($this->prefix('logFlusher'))
+		return $builder->addDefinition($this->prefix('logFlusher'))
 			->setFactory(LogFlusher::class, [
 				$channelDefinitionMap,
 			]);
@@ -263,7 +268,7 @@ final class MonologExtension extends CompilerExtension
 	}
 
 	/**
-	 * @param array<string, ServiceDefinition> $channelDefinitions
+	 * @param array<string, ServiceDefinition>    $channelDefinitions
 	 * @param array<string, Definition|Reference> $handlerDefinitions
 	 */
 	private function addHandlersToChannels(array $channelDefinitions, array $handlerDefinitions, stdClass $config): void
@@ -370,7 +375,7 @@ final class MonologExtension extends CompilerExtension
 	}
 
 	/**
-	 * @param array<ServiceDefinition> $channelDefinitions
+	 * @param array<ServiceDefinition>    $channelDefinitions
 	 * @param array<Definition|Reference> $processorDefinitions
 	 */
 	private function addProcessorsToChannels(
@@ -613,6 +618,24 @@ final class MonologExtension extends CompilerExtension
 
 		throw InvalidState::create()
 			->withMessage($message);
+	}
+
+	private function addFlusherToApplicationShutdown(
+		ServiceDefinition $logFlusherDefinition,
+		ContainerBuilder $builder
+	): void
+	{
+		foreach ($builder->findByType(Application::class) as $applicationDefinition) {
+			assert($applicationDefinition instanceof ServiceDefinition);
+
+			$applicationDefinition->addSetup(
+				'?->onShutdown[] = fn() => ?->reset()',
+				[
+					$applicationDefinition,
+					$logFlusherDefinition,
+				],
+			);
+		}
 	}
 
 	/**

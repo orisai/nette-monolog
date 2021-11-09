@@ -14,12 +14,12 @@
 - [Processors](#processors)
 - [Formatters](#formatters)
 - [Integrations](#integrations)
-    - [Tracy](#tracy)
-        - [Logging from Tracy](#logging-from-tracy)
-        - [Logging to Tracy](#logging-to-tracy)
-        - [Error level mapping](#error-level-mapping)
-        - [Tracy bar panel](#tracy-bar-panel)
-    - [Logtail](#logtail)
+	- [Tracy](#tracy)
+		- [Logging from Tracy](#logging-from-tracy)
+		- [Logging to Tracy](#logging-to-tracy)
+		- [Error level mapping](#error-level-mapping)
+		- [Tracy bar panel](#tracy-bar-panel)
+	- [Logtail](#logtail)
 - [Efficiency](#efficiency)
 - [Static logger access](#static-logger-access)
 
@@ -529,6 +529,9 @@ Some handlers log in batches instead of logging every message individually. This
 for usual use cases but also increases memory usage for long-running task. To ensure your tasks count with that and
 flush records occasionally, use `OriNette\Monolog\LogFlusher`. It has available same `reset()` and `close()` methods as
 `Monolog\Logger` but also ensures method is called for all used loggers.
+
+If you have *nette/application* installed, `LogFlusher->log()` is automatically called on `Application::$onShutdown`
+event.
 
 ```php
 use App\Core\BusinessEventsLogger;

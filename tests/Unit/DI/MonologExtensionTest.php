@@ -29,14 +29,28 @@ use Tracy\Bar;
 use Tracy\Debugger;
 use Tracy\ILogger;
 use function dirname;
+use function mkdir;
+use const PHP_VERSION_ID;
 
 final class MonologExtensionTest extends TestCase
 {
 
+	private string $rootDir;
+
+	protected function setUp(): void
+	{
+		parent::setUp();
+
+		$this->rootDir = dirname(__DIR__, 3);
+		if (PHP_VERSION_ID < 81_000) {
+			@mkdir("$this->rootDir/var/build");
+		}
+	}
+
 	public function testEmpty(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/empty.neon');
 
 		$container = $configurator->createContainer();
@@ -49,8 +63,8 @@ final class MonologExtensionTest extends TestCase
 
 	public function testChannelWiring(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/channelWiring.neon');
 
 		$container = $configurator->createContainer();
@@ -71,8 +85,8 @@ final class MonologExtensionTest extends TestCase
 
 	public function testChannelWiringInvalidClass(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/channelWiring.invalid.neon');
 
 		$this->expectException(InvalidArgument::class);
@@ -88,8 +102,8 @@ MSG);
 
 	public function testHandlerWiring(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/handlerWiring.neon');
 
 		$container = $configurator->createContainer();
@@ -116,8 +130,8 @@ MSG);
 
 	public function testHandlerProcessorWiring(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/handlerWiring.processors.neon');
 
 		$container = $configurator->createContainer();
@@ -153,8 +167,8 @@ MSG);
 
 	public function testHandlerWiringInvalid1(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/handlerWiring.invalid.1.neon');
 
 		$this->expectException(InvalidConfigurationException::class);
@@ -168,8 +182,8 @@ MSG);
 
 	public function testHandlerWiringInvalid2(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/handlerWiring.invalid.2.neon');
 
 		$this->expectException(InvalidArgument::class);
@@ -184,8 +198,8 @@ MSG);
 
 	public function testHandlerWiringFilterAllowed(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/handlerWiring.allowed.neon');
 
 		$container = $configurator->createContainer();
@@ -207,8 +221,8 @@ MSG);
 
 	public function testHandlerWiringFilterForbidden(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/handlerWiring.forbidden.neon');
 
 		$container = $configurator->createContainer();
@@ -230,8 +244,8 @@ MSG);
 
 	public function testProcessorWiring(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/processorWiring.neon');
 
 		$container = $configurator->createContainer();
@@ -258,8 +272,8 @@ MSG);
 
 	public function testProcessorWiringInvalid1(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/processorWiring.invalid.1.neon');
 
 		$this->expectException(InvalidConfigurationException::class);
@@ -273,8 +287,8 @@ MSG);
 
 	public function testProcessorWiringInvalid2(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/processorWiring.invalid.2.neon');
 
 		$this->expectException(InvalidArgument::class);
@@ -290,8 +304,8 @@ MSG);
 
 	public function testProcessorWiringInvalid3(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/processorWiring.invalid.3.neon');
 
 		$this->expectException(InvalidArgument::class);
@@ -307,8 +321,8 @@ MSG);
 
 	public function testProcessorWiringFilterAllowed(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/processorWiring.allowed.neon');
 
 		$container = $configurator->createContainer();
@@ -330,8 +344,8 @@ MSG);
 
 	public function testProcessorWiringFilterForbidden(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/processorWiring.forbidden.neon');
 
 		$container = $configurator->createContainer();
@@ -353,8 +367,8 @@ MSG);
 
 	public function testTracyHandlerServiceSet(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/tracy.handler.service.neon');
 
 		$this->expectException(InvalidArgument::class);
@@ -369,8 +383,8 @@ MSG);
 
 	public function testTracyHandlerWithoutActivation(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/tracy.handler.withoutActivation.neon');
 
 		$this->expectException(InvalidState::class);
@@ -396,8 +410,8 @@ MSG);
 		?string $handlerServiceName = null
 	): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig($configFile);
 		$configurator->addStaticParameters([
 			'levelDebug' => $levelDebug,
@@ -511,8 +525,8 @@ MSG);
 
 	public function testLogLevelsHandlerAdapter(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/logLevels.handlerAdapter.neon');
 
 		$container = $configurator->createContainer();
@@ -563,8 +577,8 @@ MSG);
 
 	public function testBubblingA(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/bubbling.a.neon');
 
 		$container = $configurator->createContainer();
@@ -606,8 +620,8 @@ MSG);
 
 	public function testBubblingB(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/bubbling.b.neon');
 
 		$container = $configurator->createContainer();
@@ -650,8 +664,8 @@ MSG);
 	 */
 	public function testToTracyBridge(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/tracy.toTracy.neon');
 
 		$container = $configurator->createContainer();
@@ -697,8 +711,8 @@ MSG);
 
 	public function testToTracyBridgeMissingService(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/tracy.toTracy.missingService.neon');
 
 		$this->expectException(InvalidState::class);
@@ -718,8 +732,8 @@ MSG);
 	 */
 	public function testFromTracyBridge(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/tracy.fromTracy.neon');
 
 		$container = $configurator->createContainer();
@@ -778,8 +792,8 @@ MSG);
 
 	public function testFromTracyBridgeUnknownChannels(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/tracy.fromTracy.unknownChannels.neon');
 
 		$this->expectException(InvalidArgument::class);
@@ -794,8 +808,8 @@ MSG);
 
 	public function testFromTracyBridgeMissingService(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/tracy.fromTracy.missingService.neon');
 
 		$this->expectException(InvalidState::class);
@@ -818,8 +832,8 @@ MSG);
 		$tracyLogger = new TracyTestLogger();
 		Debugger::setLogger($tracyLogger);
 
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/tracy.bothDirections.neon');
 
 		$container = $configurator->createContainer();
@@ -872,8 +886,8 @@ MSG);
 	 */
 	public function testTracyPanelBridge(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/tracy.tracyPanel.neon');
 
 		$container = $configurator->createContainer();
@@ -895,8 +909,8 @@ MSG);
 
 	public function testTracyPanelBridgeMissingService(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/tracy.tracyPanel.missingService.neon');
 
 		$this->expectException(InvalidState::class);
@@ -916,8 +930,8 @@ MSG);
 	 */
 	public function testTracyHandlersArePrepended(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/tracy.prependHandlers.neon');
 
 		$container = $configurator->createContainer();
@@ -954,8 +968,8 @@ MSG);
 
 	public function testLogFlusher(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/logFlusher.neon');
 
 		$container = $configurator->createContainer();
@@ -996,8 +1010,8 @@ MSG);
 
 	public function testLogFlusherApplicationBridge(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/logFlusher.applicationBridge.neon');
 
 		$container = $configurator->createContainer();
@@ -1028,8 +1042,8 @@ MSG);
 	 */
 	public function testStaticGetter(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/staticGetter.neon');
 
 		$container = $configurator->createContainer();
@@ -1042,8 +1056,8 @@ MSG);
 
 	public function testStaticGetterUnknown(): void
 	{
-		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
-		$configurator->setDebugMode(true);
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
 		$configurator->addConfig(__DIR__ . '/staticGetter.unknown.neon');
 
 		$this->expectException(InvalidArgument::class);

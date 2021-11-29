@@ -43,7 +43,7 @@
 		"phpstan/phpstan-strict-rules": "^1.0.0",
 		"phpunit/phpunit": "^9.5.0",
 		"staabm/annotate-pull-request-from-checkstyle": "^1.7.0",
-		"symfony/http-client": "^5.3.0",
+		"symfony/http-client": "^5.3.0|^6.0.0",
 		"tracy/tracy": "^2.8.0"
 	},
 	"autoload": {

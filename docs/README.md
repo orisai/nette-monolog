@@ -35,13 +35,13 @@ Register extension
 
 ```neon
 extensions:
-	monolog: OriNette\Monolog\DI\MonologExtension
+	orisai.monolog: OriNette\Monolog\DI\MonologExtension
 ```
 
 Configure debug mode. How is debug mode used is explained in [log levels](#log-levels).
 
 ```neon
-monolog:
+orisai.monolog:
 
 	# bool
 	debug: %debugMode%
@@ -55,7 +55,7 @@ will log into. Then you can continue to [logging messages](#logging-messages).
 For more details how to configure your logger check [channels](#channels) and [handlers](#handlers).
 
 ```neon
-monolog:
+orisai.monolog:
 	channels:
 		example:
 			autowired: true
@@ -117,7 +117,7 @@ single *main* channel is enough but in more complex and huge applications you ma
 individually.
 
 ```neon
-monolog:
+orisai.monolog:
 
 	# Individual channels
 	# Each is registered as a service
@@ -152,7 +152,7 @@ Each handler has to define `service` key - either referencing existing service o
 root `services` section. Service is expected to return `Monolog\Handler\HandlerInterface`.
 
 ```neon
-monolog:
+orisai.monolog:
 
 	# Handlers registered to all channels
 	# - unless channel specifies allowed/forbidden handlers
@@ -171,7 +171,7 @@ monolog:
 Handlers can be disabled by config option for example to enable console handler only in console mode.
 
 ```neon
-monolog:
+orisai.monolog:
 	handlers:
 
 		console:
@@ -191,7 +191,7 @@ timeout.
 In following example, `StreamHandler` don't handle record unless `MailHandler` failed:
 
 ```neon
-monolog:
+orisai.monolog:
 	handlers:
 
 		mail:
@@ -211,7 +211,7 @@ Handlers are registered to all channels. To add only explicitly allowed handlers
 option. To add all handlers except forbidden, use `handlers > forbidden` channel option.
 
 ```neon
-monolog:
+orisai.monolog:
 	channels:
 		example:
 
@@ -241,7 +241,7 @@ messages.
 By default all handlers handle `debug` messages in debug mode and `warning` messages when debug is disabled.
 
 ```neon
-monolog:
+orisai.monolog:
 
 	# Affects whether level > debug or level > production is used
 	# - used for both root and handler `level` option
@@ -253,7 +253,7 @@ monolog:
 It is possible to change minimal level handled by all handlers:
 
 ```neon
-monolog:
+orisai.monolog:
 
 	# Default log level
 	# Minimal level of message handler should handle
@@ -270,7 +270,7 @@ monolog:
 Or change level only for specific handler:
 
 ```neon
-monolog:
+orisai.monolog:
 	handlers:
 		example:
 
@@ -307,7 +307,7 @@ Each processor must either reference existing service or define new, with same s
 Service is expected to return `Monolog\Handler\HandlerInterface`.
 
 ```neon
-monolog:
+orisai.monolog:
 
 	# Processors registered to all channels
 	# - unless channel specifies allowed/forbidden processors
@@ -324,7 +324,7 @@ Processors are registered to all channels. To add only explicitly allowed proces
 option. To add all processors except forbidden, use `processors > forbidden` channel option.
 
 ```neon
-monolog:
+orisai.monolog:
 	channels:
 		example:
 
@@ -348,7 +348,7 @@ monolog:
 Register processor to single handler, instead of channel:
 
 ```neon
-monolog:
+orisai.monolog:
 	handlers:
 		example:
 
@@ -374,7 +374,7 @@ Formattable handlers usually extends `AbstractProcessingHandler` or use `Formatt
 like this:
 
 ```neon
-monolog:
+orisai.monolog:
 	handlers:
 
 		file:
@@ -406,7 +406,7 @@ Be aware that `fromTracy` bridge works only for `Tracy\Debugger::log()`. Using `
 logging only by enabled Monolog channels. This limitation can be simply worked around by enabling *toTracy* bridge.
 
 ```neon
-monolog:
+orisai.monolog:
 	bridge:
 
 		# Log from Tracy to Monolog channels
@@ -425,7 +425,7 @@ Under the hood extension registers [handler](#handlers) with reserved name `trac
 as any other (except the preset `service` key) so you can e.g. allow or forbid this handler for specific channels.
 
 ```neon
-monolog:
+orisai.monolog:
 	bridge:
 
 		# Log from Monolog channels to Tracy
@@ -487,7 +487,7 @@ Under the hood extension registers [handler](#handlers) with reserved name `trac
 as any other (except the preset `service` key) so you can e.g. allow or forbid this handler for specific channels.
 
 ```neon
-monolog:
+orisai.monolog:
 	bridge:
 
 		# Add panel to Tracy bar
@@ -506,7 +506,7 @@ To use `LogtailHandler` you will also need an PSR-18 client, e.g. from
 [orisai/nette-http-client](https://github.com/orisai/nette-http-client).
 
 ```neon
-monolog:
+orisai.monolog:
 	handlers:
 		logtail:
 			service: OriNette\Monolog\Bridge\Logtail\LogtailHandler(
@@ -581,7 +581,7 @@ When DI cannot be used, mostly in legacy code, logger can be accessed statically
 To enable it, configure which channel should static logger use:
 
 ```neon
-monolog:
+orisai.monolog:
 	staticGetter: main
 
 	channels:

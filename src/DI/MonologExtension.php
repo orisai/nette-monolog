@@ -50,7 +50,7 @@ use function is_string;
 final class MonologExtension extends CompilerExtension
 {
 
-	private const LOG_LEVELS = [
+	private const LogLevels = [
 		LogLevel::DEBUG,
 		LogLevel::INFO,
 		LogLevel::NOTICE,
@@ -85,8 +85,8 @@ final class MonologExtension extends CompilerExtension
 		return Expect::structure([
 			'debug' => Expect::bool()->required(),
 			'level' => Expect::structure([
-				'debug' => Expect::anyOf(...self::LOG_LEVELS)->default(LogLevel::DEBUG),
-				'production' => Expect::anyOf(...self::LOG_LEVELS)->default(LogLevel::WARNING),
+				'debug' => Expect::anyOf(...self::LogLevels)->default(LogLevel::DEBUG),
+				'production' => Expect::anyOf(...self::LogLevels)->default(LogLevel::WARNING),
 			]),
 			'channels' => Expect::arrayOf(
 				Expect::structure([
@@ -104,8 +104,8 @@ final class MonologExtension extends CompilerExtension
 					'enabled' => Expect::bool(true),
 					'service' => DefinitionsLoader::schema(),
 					'level' => Expect::structure([
-						'debug' => Expect::anyOf(null, ...self::LOG_LEVELS),
-						'production' => Expect::anyOf(null, ...self::LOG_LEVELS),
+						'debug' => Expect::anyOf(null, ...self::LogLevels),
+						'production' => Expect::anyOf(null, ...self::LogLevels),
 					]),
 					'bubble' => Expect::bool(true),
 					'processors' => Expect::arrayOf(

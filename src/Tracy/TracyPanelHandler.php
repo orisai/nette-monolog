@@ -3,13 +3,14 @@
 namespace OriNette\Monolog\Tracy;
 
 use Monolog\Handler\AbstractProcessingHandler;
+use Monolog\LogRecord;
 use Tracy\Helpers;
 use Tracy\IBarPanel;
 
 final class TracyPanelHandler extends AbstractProcessingHandler implements IBarPanel
 {
 
-	/** @var array<array<mixed>> */
+	/** @var array<array<mixed>|LogRecord> */
 	private array $records = [];
 
 	public function getTab(): string
@@ -39,9 +40,9 @@ final class TracyPanelHandler extends AbstractProcessingHandler implements IBarP
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * @param array<mixed>|LogRecord $record
 	 */
-	protected function write(array $record): void
+	protected function write($record): void
 	{
 		$this->records[] = $record;
 	}

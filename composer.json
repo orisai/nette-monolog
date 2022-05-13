@@ -22,7 +22,7 @@
 	],
 	"require": {
 		"php": ">=7.4.0 <8.2.0",
-		"monolog/monolog": "^2.3.0",
+		"monolog/monolog": "^2.3.0|^3.0.0",
 		"nette/di": "^3.0.6",
 		"nette/schema": "^1.1.0",
 		"orisai/exceptions": "^1.1.0",

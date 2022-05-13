@@ -5,14 +5,12 @@ namespace OriNette\Monolog;
 use Monolog\Handler\HandlerInterface;
 use Monolog\Handler\ProcessableHandlerInterface;
 use Monolog\Handler\ProcessableHandlerTrait;
-use Monolog\Logger;
+use Monolog\Level;
+use Monolog\LogRecord;
 use Monolog\Processor\ProcessorInterface;
 use Monolog\ResettableInterface;
 
 /**
- * @phpstan-import-type Record from Logger
- * @phpstan-import-type Level from Logger
- *
  * @internal
  */
 final class HandlerAdapter implements HandlerInterface, ProcessableHandlerInterface, ResettableInterface
@@ -22,35 +20,36 @@ final class HandlerAdapter implements HandlerInterface, ProcessableHandlerInterf
 
 	private HandlerInterface $handler;
 
-	/** @phpstan-var Level */
 	private int $level;
 
 	private bool $bubble;
 
 	/**
 	 * @param array<ProcessorInterface> $processors
-	 * @phpstan-param Level             $level
+	 * @phpstan-param int|Level         $level
 	 */
-	public function __construct(HandlerInterface $handler, int $level, bool $bubble, array $processors)
+	public function __construct(HandlerInterface $handler, $level, bool $bubble, array $processors)
 	{
 		$this->handler = $handler;
-		$this->level = $level;
+		$this->level = $level instanceof Level ? $level->value : $level;
 		$this->bubble = $bubble;
 		$this->processors = $processors;
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * @param array<mixed>|LogRecord $record
 	 */
-	public function isHandling(array $record): bool
+	public function isHandling($record): bool
 	{
-		return $record['level'] >= $this->level;
+		return $record instanceof LogRecord
+			? $record->level->value >= $this->level
+			: $record['level'] >= $this->level;
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * @param array<mixed>|LogRecord $record
 	 */
-	public function handle(array $record): bool
+	public function handle($record): bool
 	{
 		if (!$this->isHandling($record)) {
 			return false;
@@ -66,9 +65,6 @@ final class HandlerAdapter implements HandlerInterface, ProcessableHandlerInterf
 		return $this->bubble === false;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function handleBatch(array $records): void
 	{
 		foreach ($records as $record) {
@@ -97,7 +93,7 @@ final class HandlerAdapter implements HandlerInterface, ProcessableHandlerInterf
 
 	/**
 	 * @return array<callable>
-	 * @phpstan-return array<ProcessorInterface|callable(Record): Record>
+	 * @phpstan-return array<(callable(LogRecord): LogRecord)|ProcessorInterface>
 	 */
 	public function getProcessors(): array
 	{

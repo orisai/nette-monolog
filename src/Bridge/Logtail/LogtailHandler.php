@@ -6,7 +6,10 @@ use Monolog\Formatter\FormatterInterface;
 use Monolog\Formatter\NormalizerFormatter;
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Handler\BufferHandler;
+use Monolog\Level;
 use Monolog\Logger;
+use Monolog\LogRecord;
+use Psr\Log\LogLevel;
 use function register_shutdown_function;
 
 final class LogtailHandler extends AbstractProcessingHandler
@@ -20,7 +23,8 @@ final class LogtailHandler extends AbstractProcessingHandler
 	private array $records = [];
 
 	/**
-	 * {@inheritDoc}
+	 * @param int|string|Level|LogLevel::* $level
+	 * @phpstan-param value-of<Level::VALUES>|value-of<Level::NAMES>|Level|LogLevel::* $level
 	 */
 	public function __construct(LogtailClient $client, $level = Logger::DEBUG, bool $bubble = true)
 	{
@@ -29,14 +33,18 @@ final class LogtailHandler extends AbstractProcessingHandler
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * @param array<mixed>|LogRecord $record
 	 */
-	protected function write(array $record): void
+	protected function write($record): void
 	{
 		if (!$this->initialized) {
 			// __destruct() is not called on fatal errors
 			register_shutdown_function(fn () => $this->close());
 			$this->initialized = true;
+		}
+
+		if ($record instanceof LogRecord) {
+			$record = $record->toArray();
 		}
 
 		$record = $record['formatted'];

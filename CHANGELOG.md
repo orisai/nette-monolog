@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased](https://github.com/orisai/nette-monolog/compare/1.1.0...HEAD)
 
+### Added
+
+- Support for `monolog/monolog ^3.0.0`
+
 ## [1.1.0](https://github.com/orisai/nette-monolog/compare/1.0.2...1.1.0)
 
 ### Added

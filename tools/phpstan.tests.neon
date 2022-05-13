@@ -7,3 +7,7 @@ parameters:
 
 	scanDirectories:
 		- ../src
+
+	ignoreErrors:
+		# Monolog V2 and V3 compatibility
+		- '#^Fetching deprecated class constant (.+) of class Monolog\\Logger(.+)#'

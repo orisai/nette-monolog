@@ -4,6 +4,7 @@ namespace Tests\OriNette\Monolog\Unit;
 
 use Monolog\Handler\BufferHandler;
 use Monolog\Logger;
+use Monolog\LogRecord;
 use Monolog\Processor\UidProcessor;
 use OriNette\Monolog\HandlerAdapter;
 use PHPUnit\Framework\TestCase;
@@ -147,6 +148,10 @@ final class HandlerAdapterTest extends TestCase
 	private function filterRecords(array $records): array
 	{
 		foreach ($records as $key => $record) {
+			if ($record instanceof LogRecord) {
+				$record = $record->toArray();
+			}
+
 			unset($record['channel'], $record['datetime'], $record['level_name']);
 			$records[$key] = $record;
 		}

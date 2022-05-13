@@ -14,7 +14,7 @@ class TestLogger extends AbstractLogger
 	public array $recordsByLevel = [];
 
 	/**
-	 * @inheritdoc
+	 * {@inheritDoc}
 	 */
 	public function log($level, $message, array $context = []): void
 	{

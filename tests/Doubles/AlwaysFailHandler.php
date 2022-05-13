@@ -3,30 +3,28 @@
 namespace Tests\OriNette\Monolog\Doubles;
 
 use Monolog\Handler\HandlerInterface;
+use Monolog\LogRecord;
 use Orisai\Exceptions\Logic\NotImplemented;
 
 final class AlwaysFailHandler implements HandlerInterface
 {
 
 	/**
-	 * {@inheritDoc}
+	 * @param array<mixed>|LogRecord $record
 	 */
-	public function isHandling(array $record): bool
+	public function isHandling($record): bool
 	{
 		throw NotImplemented::create();
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * @param array<mixed>|LogRecord $record
 	 */
-	public function handle(array $record): bool
+	public function handle($record): bool
 	{
 		throw NotImplemented::create();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function handleBatch(array $records): void
 	{
 		throw NotImplemented::create();

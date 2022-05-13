@@ -3,51 +3,53 @@
 namespace Tests\OriNette\Monolog\Doubles;
 
 use Monolog\Handler\Handler;
+use Monolog\Level;
 use Monolog\Logger;
+use Monolog\LogRecord;
 use Monolog\ResettableInterface;
 use Psr\Log\LogLevel;
 
 /**
  * Does not extend AbstractHandler intentionally
- *
- * @phpstan-import-type Level from Logger
- * @phpstan-import-type LevelName from Logger
- * @phpstan-import-type Record from Logger
  */
 class SimpleTestHandler extends Handler implements ResettableInterface
 {
 
 	private int $level;
 
-	/**
-	 * @var array<array<mixed>>
-	 * @phpstan-var array<Record>
-	 */
+	/** @var array<array<mixed>|LogRecord> */
 	private array $records = [];
 
 	/**
-	 * @param string|int $level
-	 * @phpstan-param Level|LevelName|LogLevel::* $level
+	 * @param int|string|Level $level
+	 * @phpstan-param int|string|Level|LogLevel::* $level
 	 */
 	public function __construct($level = Logger::DEBUG)
 	{
-		$this->level = Logger::toMonologLevel($level);
+		$monologLevel = Logger::toMonologLevel($level);
+		$this->level = $monologLevel instanceof Level
+			? $monologLevel->value
+			: $monologLevel;
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * @param array<mixed>|LogRecord $record
 	 */
-	public function isHandling(array $record): bool
+	public function isHandling($record): bool
 	{
-		return $record['level'] >= $this->level;
+		return $record instanceof LogRecord
+			? $record->level->value >= $this->level
+			: $record['level'] >= $this->level;
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * @param array<mixed>|LogRecord $record
 	 */
-	public function handle(array $record): bool
+	public function handle($record): bool
 	{
-		$handle = $record['level'] >= $this->level;
+		$handle = $record instanceof LogRecord
+			? $record->level->value >= $this->level
+			: $record['level'] >= $this->level;
 
 		if ($handle) {
 			$this->records[] = $record;
@@ -57,8 +59,7 @@ class SimpleTestHandler extends Handler implements ResettableInterface
 	}
 
 	/**
-	 * @return array<array<mixed>>
-	 * @phpstan-return array<Record>
+	 * @return array<array<mixed>|LogRecord>
 	 */
 	public function getRecords(): array
 	{

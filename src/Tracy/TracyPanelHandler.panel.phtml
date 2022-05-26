@@ -5,18 +5,29 @@ use Tracy\Dumper;
 /** @var array<array<mixed>> $records */
 
 ?>
-<h1>Logs (<?= count($records) ?>)</h1>
+<h1>Log records</h1>
 
 <div class="tracy-inner">
-	<div class="tracy-inner-container">
-		<table>
-			<?php foreach ($records as $record): ?>
-				<tr>
-					<td>
-						<?= Dumper::toHtml($record) ?>
-					</td>
-				</tr>
-			<?php endforeach; ?>
-		</table>
-	</div>
+	<table class="tracy-sortable">
+		<tr>
+			<th>Level</th>
+			<th>Channel</th>
+			<th>Time</th>
+			<th>Message</th>
+		</tr>
+		<?php foreach ($records as $record): ?>
+			<tr>
+				<td><?= "{$record['level']} ({$record['level_name']})" ?></td>
+				<td><?= $record['channel'] ?></td>
+				<td><?= $record['datetime']->format('H:i:s.u'); ?></td>
+				<td>
+					<?php
+					echo $record['message'];
+					echo Dumper::toHtml($record['context'], [Dumper::LIVE => true]);
+					echo Dumper::toHtml($record['extra'], [Dumper::LIVE => true, Dumper::COLLAPSE => true]);
+					?>
+				</td>
+			</tr>
+		<?php endforeach; ?>
+	</table>
 </div>

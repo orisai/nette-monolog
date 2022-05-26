@@ -10,7 +10,7 @@ use Tracy\IBarPanel;
 final class TracyPanelHandler extends AbstractProcessingHandler implements IBarPanel
 {
 
-	/** @var array<array<mixed>|LogRecord> */
+	/** @var array<array<mixed>> */
 	private array $records = [];
 
 	public function getTab(): string
@@ -44,6 +44,10 @@ final class TracyPanelHandler extends AbstractProcessingHandler implements IBarP
 	 */
 	protected function write($record): void
 	{
+		if ($record instanceof LogRecord) {
+			$record = $record->toArray();
+		}
+
 		$this->records[] = $record;
 	}
 

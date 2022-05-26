@@ -496,6 +496,8 @@ orisai.monolog:
 		tracyPanel: %debugMode%
 ```
 
+![panel screenshot](panel.png)
+
 ### Logtail
 
 [Logtail](https://logtail.com) is a fast and flexible logging service with great UX. While they have their own Monolog

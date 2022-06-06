@@ -43,11 +43,9 @@ final class LogtailHandler extends AbstractProcessingHandler
 			$this->initialized = true;
 		}
 
-		if ($record instanceof LogRecord) {
-			$record = $record->toArray();
-		}
-
-		$record = $record['formatted'];
+		$record = $record instanceof LogRecord
+			? $record->toArray()
+			: $record['formatted'];
 
 		$record['dt'] = $record['datetime'];
 		unset($record['datetime']);

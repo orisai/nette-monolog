@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased](https://github.com/orisai/nette-monolog/compare/1.2.1...HEAD)
 
+### Fixed
+
+- LogtailHandler Monolog v3 compatiblity
+
 ## [1.2.1](https://github.com/orisai/nette-monolog/compare/1.2.0...1.2.1) - 2022-05-27
 
 ### Added

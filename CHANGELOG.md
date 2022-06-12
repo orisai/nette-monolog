@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased](https://github.com/orisai/nette-monolog/compare/1.2.2...HEAD)
 
+## [1.2.3](https://github.com/orisai/nette-monolog/compare/1.2.2...1.2.3) - 2022-06-12
+
 ### Fixed
 
 - LogtailClient throws on HTTP error

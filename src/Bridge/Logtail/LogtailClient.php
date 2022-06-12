@@ -3,6 +3,7 @@
 namespace OriNette\Monolog\Bridge\Logtail;
 
 use Nette\Utils\Json;
+use Orisai\Exceptions\Logic\InvalidArgument;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
@@ -51,7 +52,13 @@ final class LogtailClient
 			->withHeader('Content-Type', 'application/json')
 			->withBody($this->streamFactory->createStream(Json::encode($data)));
 
-		$this->client->sendRequest($request);
+		$response = $this->client->sendRequest($request);
+
+		$code = $response->getStatusCode();
+		if ($code >= 400) {
+			throw InvalidArgument::create()
+				->withMessage("Logtail returned an error ($code): {$response->getBody()->getContents()}");
+		}
 	}
 
 }

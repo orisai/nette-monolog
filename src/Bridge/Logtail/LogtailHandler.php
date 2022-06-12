@@ -17,8 +17,6 @@ final class LogtailHandler extends AbstractProcessingHandler
 
 	private LogtailClient $client;
 
-	private bool $initialized = false;
-
 	/** @var array<array<mixed>> */
 	private array $records = [];
 
@@ -30,6 +28,9 @@ final class LogtailHandler extends AbstractProcessingHandler
 	{
 		parent::__construct($level, $bubble);
 		$this->client = $client;
+
+		// __destruct() is not called on fatal errors
+		register_shutdown_function(fn () => $this->close());
 	}
 
 	/**
@@ -37,12 +38,6 @@ final class LogtailHandler extends AbstractProcessingHandler
 	 */
 	protected function write($record): void
 	{
-		if (!$this->initialized) {
-			// __destruct() is not called on fatal errors
-			register_shutdown_function(fn () => $this->close());
-			$this->initialized = true;
-		}
-
 		$record = $record instanceof LogRecord
 			? $record->toArray()
 			: $record['formatted'];

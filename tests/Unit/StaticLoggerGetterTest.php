@@ -33,7 +33,7 @@ MSG);
 		$configurator = new ManualConfigurator(dirname(__DIR__, 2));
 		$configurator->setDebugMode(true);
 
-		$configurator->addConfig(__DIR__ . '/staticLoggerGetter.neon');
+		$configurator->addConfig(__DIR__ . '/StaticLoggerGetter.neon');
 
 		$container = $configurator->createContainer();
 		$logger = $container->getByType(LoggerInterface::class);

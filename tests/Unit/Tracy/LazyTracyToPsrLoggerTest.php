@@ -15,7 +15,7 @@ final class LazyTracyToPsrLoggerTest extends TestCase
 	{
 		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
 		$configurator->setDebugMode(true);
-		$configurator->addConfig(__DIR__ . '/logger.neon');
+		$configurator->addConfig(__DIR__ . '/LazyTracyToPsrLogger.neon');
 
 		$container = $configurator->createContainer();
 

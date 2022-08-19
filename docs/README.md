@@ -5,6 +5,7 @@
 ## Content
 
 - [Setup](#setup)
+- [Quickstart](#quickstart)
 - [Configuring logger](#configuring-logger)
 - [Logging messages](#logging-messages)
 - [Channels](#channels)
@@ -47,6 +48,20 @@ orisai.monolog:
 	debug: %debugMode%
 ```
 
+## Quickstart
+
+Just want to wire Monolog to log in Tracy and start [logging messages](#logging-messages)? Then finish [setup](#setup)
+and use the quickstart guide. Otherwise, continue with [configuring logger](#configuring-logger).
+
+```neon
+orisai.monolog:
+	bridge:
+		toTracy: true
+	channels:
+		main:
+			autowired: true
+```
+
 ## Configuring logger
 
 In order to start logging you have to create a channel (logger service instance) and at least one handler the channel
@@ -57,7 +72,7 @@ For more details how to configure your logger check [channels](#channels) and [h
 ```neon
 orisai.monolog:
 	channels:
-		example:
+		main:
 			autowired: true
 
 	handlers:
@@ -213,7 +228,7 @@ option. To add all handlers except forbidden, use `handlers > forbidden` channel
 ```neon
 orisai.monolog:
 	channels:
-		example:
+		main:
 
 			# Allowed/forbidden handlers
 			# - unless specified all are used
@@ -326,7 +341,7 @@ option. To add all processors except forbidden, use `processors > forbidden` cha
 ```neon
 orisai.monolog:
 	channels:
-		example:
+		main:
 
 			# Allowed/forbidden processors
 			# - unless specified all are used

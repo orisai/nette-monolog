@@ -38,3 +38,32 @@
 <p>
 
 ##
+
+```php
+use Psr\Log\LoggerInterface;
+
+final class ImportantCode
+{
+
+	private LoggerInterface $logger;
+
+	public function __construct(LoggerInterface $logger)
+	{
+		$this->logger = $logger;
+	}
+
+	public function doSomethingImportant(): void
+	{
+		try {
+			// Dark magic
+
+			$this->logger->info('Everything is fine');
+		} catch (WeHaveAProblemHouston $e) {
+			$this->logger->critical('We are all gonna die.', [
+				'exception' => $e,
+			]);
+		}
+	}
+
+}
+```

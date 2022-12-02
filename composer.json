@@ -8,6 +8,7 @@
 		"monolog",
 		"nette",
 		"orisai",
+		"psr",
 		"psr-3",
 		"tracy"
 	],

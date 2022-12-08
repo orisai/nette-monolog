@@ -61,10 +61,10 @@ final class MonologExtension extends CompilerExtension
 		LogLevel::EMERGENCY,
 	];
 
-	/** @var array<ServiceDefinition> */
+	/** @var array<string, ServiceDefinition> */
 	private array $channelDefinitions;
 
-	/** @var array<Definition|Reference> */
+	/** @var array<string, Definition|Reference> */
 	private array $handlerDefinitions;
 
 	private ServiceDefinition $logFlusherDefinition;
@@ -169,12 +169,14 @@ final class MonologExtension extends CompilerExtension
 	}
 
 	/**
-	 * @return array<ServiceDefinition>
+	 * @return array<string, ServiceDefinition>
 	 */
 	private function registerChannels(stdClass $config, ContainerBuilder $builder): array
 	{
 		$channelDefinitions = [];
 		foreach ($config->channels as $channelName => $channelConfig) {
+			assert(is_string($channelName));
+
 			$loggerClass = Logger::class;
 			$autowired = $channelConfig->autowired;
 
@@ -254,6 +256,8 @@ final class MonologExtension extends CompilerExtension
 	{
 		$handlerDefinitions = [];
 		foreach ($config->handlers as $handlerName => $handlerConfig) {
+			assert(is_string($handlerName));
+
 			if ($handlerConfig->enabled !== true) {
 				continue;
 			}

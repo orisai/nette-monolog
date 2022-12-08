@@ -22,7 +22,7 @@
 		}
 	],
 	"require": {
-		"php": ">=7.4.0 <8.2.0",
+		"php": ">=7.4.0 <8.3.0",
 		"monolog/monolog": "^2.3.0|^3.0.0",
 		"nette/di": "^3.0.6",
 		"nette/schema": "^1.1.0",
@@ -34,7 +34,7 @@
 		"brianium/paratest": "^6.3.0",
 		"infection/infection": "^0.26.0",
 		"nette/application": "^3.0.0",
-		"orisai/coding-standard": "^2.0.0",
+		"orisai/coding-standard": "^3.0.0",
 		"orisai/nette-http-client": "^1.0.0",
 		"phpstan/extension-installer": "^1.0.0",
 		"phpstan/phpstan": "^1.0.0",

@@ -545,7 +545,7 @@ final class MonologExtension extends CompilerExtension
 			$this->throwTracyBridgeRequiresTracyInstalled('fromTracy');
 		}
 
-		$builder->getDefinition($tracyLoggerDefinitionName)
+		$tracyLoggerDefinition = $builder->getDefinition($tracyLoggerDefinitionName)
 			->setAutowired(false);
 
 		$tracyToPsrChannelKeys = $this->filterDefinitionsToServiceKeys(
@@ -557,7 +557,8 @@ final class MonologExtension extends CompilerExtension
 
 		$tracyToPsrDefinition = $builder->addDefinition($this->prefix('bridge.tracyToPsr'))
 			->setFactory(LazyTracyToPsrLogger::class, [
-				$tracyToPsrChannelKeys,
+				'serviceMap' => $tracyToPsrChannelKeys,
+				'tracyOriginalLogger' => $tracyLoggerDefinition,
 			]);
 
 		$init = $this->getInitialization();

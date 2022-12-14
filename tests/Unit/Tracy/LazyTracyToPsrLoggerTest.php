@@ -2,10 +2,13 @@
 
 namespace Tests\OriNette\Monolog\Unit\Tracy;
 
+use Nette\DI\Container;
 use OriNette\DI\Boot\ManualConfigurator;
 use OriNette\Monolog\Tracy\LazyTracyToPsrLogger;
+use Orisai\Exceptions\Logic\MemberInaccessible;
 use PHPUnit\Framework\TestCase;
 use Tests\OriNette\Monolog\Doubles\TestLogger;
+use Tests\OriNette\Monolog\Doubles\TracyTestLogger;
 use function dirname;
 
 final class LazyTracyToPsrLoggerTest extends TestCase
@@ -51,6 +54,69 @@ final class LazyTracyToPsrLoggerTest extends TestCase
 			$logger1->records,
 		);
 		self::assertSame($logger1->records, $logger2->records);
+	}
+
+	public function testMagicWithoutParentLogger(): void
+	{
+		$logger = new LazyTracyToPsrLogger([], new Container());
+
+		self::assertFalse(isset($logger->fromEmail));
+
+		$e = null;
+		try {
+			$logger->fromEmail;
+		} catch (MemberInaccessible $e) {
+			// Handled bellow
+		}
+
+		self::assertNotNull($e);
+		self::assertSame(
+			'Cannot read an undeclared property OriNette\Monolog\Tracy\LazyTracyToPsrLogger::$fromEmail',
+			$e->getMessage(),
+		);
+
+		$e = null;
+		try {
+			$logger->fromEmail = 'foo@bar.baz';
+		} catch (MemberInaccessible $e) {
+			// Handled bellow
+		}
+
+		self::assertNotNull($e);
+		self::assertSame(
+			'Cannot write to an undeclared property OriNette\Monolog\Tracy\LazyTracyToPsrLogger::$fromEmail',
+			$e->getMessage(),
+		);
+
+		$e = null;
+		try {
+			$logger->setFromEmail('foo@bar.baz');
+		} catch (MemberInaccessible $e) {
+			// Handled bellow
+		}
+
+		self::assertNotNull($e);
+		self::assertSame(
+			'Call to undefined or non-public method OriNette\Monolog\Tracy\LazyTracyToPsrLogger::setFromEmail()',
+			$e->getMessage(),
+		);
+	}
+
+	public function testMagicWithParentLogger(): void
+	{
+		$parentLogger = new TracyTestLogger();
+		$logger = new LazyTracyToPsrLogger([], new Container(), $parentLogger);
+
+		self::assertFalse(isset($logger->fromEmail));
+		self::assertNull($logger->fromEmail);
+
+		$logger->fromEmail = 'foo@bar.baz';
+		self::assertTrue(isset($logger->fromEmail));
+		self::assertSame('foo@bar.baz', $logger->fromEmail);
+
+		$logger->setFromEmail(null);
+		self::assertFalse(isset($logger->fromEmail));
+		self::assertNull($logger->fromEmail);
 	}
 
 }

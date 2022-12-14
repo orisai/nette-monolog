@@ -90,12 +90,14 @@ final class MonologExtensionTest extends TestCase
 		$configurator->addConfig(__DIR__ . '/config/channelWiring.invalid.neon');
 
 		$this->expectException(InvalidArgument::class);
-		$this->expectExceptionMessage(<<<'MSG'
+		$this->expectExceptionMessage(
+			<<<'MSG'
 Context: Trying to configure 'monolog > channels > ch_baz > autowired'.
 Problem: 'autowired' expects bool or name of class which extends
          'Monolog\Logger', 'stdClass' given.
 Solution: Use bool or class which extends expected class instead.
-MSG);
+MSG,
+		);
 
 		$configurator->createContainer();
 	}
@@ -187,11 +189,13 @@ MSG);
 		$configurator->addConfig(__DIR__ . '/config/handlerWiring.invalid.2.neon');
 
 		$this->expectException(InvalidArgument::class);
-		$this->expectExceptionMessage(<<<'MSG'
+		$this->expectExceptionMessage(
+			<<<'MSG'
 Context: Trying to configure 'monolog > channels > ch_foo > handlers > allowed'.
 Problem: Some of the given handlers do not exist - 'unknown'.
 Solution: Register these handlers or remove them from configured option.
-MSG);
+MSG,
+		);
 
 		$configurator->createContainer();
 	}
@@ -292,12 +296,14 @@ MSG);
 		$configurator->addConfig(__DIR__ . '/config/processorWiring.invalid.2.neon');
 
 		$this->expectException(InvalidArgument::class);
-		$this->expectExceptionMessage(<<<'MSG'
+		$this->expectExceptionMessage(
+			<<<'MSG'
 Context: Trying to configure 'monolog > channels > ch_foo > processors >
          allowed'.
 Problem: Some of the given processors do not exist - 'unknown'.
 Solution: Register these processors or remove them from configured option.
-MSG);
+MSG,
+		);
 
 		$configurator->createContainer();
 	}
@@ -309,12 +315,14 @@ MSG);
 		$configurator->addConfig(__DIR__ . '/config/processorWiring.invalid.3.neon');
 
 		$this->expectException(InvalidArgument::class);
-		$this->expectExceptionMessage(<<<'MSG'
+		$this->expectExceptionMessage(
+			<<<'MSG'
 Context: Trying to configure 'monolog > channels > ch_foo > processors >
          forbidden'.
 Problem: Some of the given processors do not exist - 'unknown'.
 Solution: Register these processors or remove them from configured option.
-MSG);
+MSG,
+		);
 
 		$configurator->createContainer();
 	}
@@ -372,11 +380,13 @@ MSG);
 		$configurator->addConfig(__DIR__ . '/config/tracy.handler.service.neon');
 
 		$this->expectException(InvalidArgument::class);
-		$this->expectExceptionMessage(<<<'MSG'
+		$this->expectExceptionMessage(
+			<<<'MSG'
 Context: Trying to configure 'monolog > handlers > tracyLogger > service'.
 Problem: This options is reserved and cannot be changed.
 Solution: Remove the option or choose different name for your handler.
-MSG);
+MSG,
+		);
 
 		$configurator->createContainer();
 	}
@@ -388,12 +398,14 @@ MSG);
 		$configurator->addConfig(__DIR__ . '/config/tracy.handler.withoutActivation.neon');
 
 		$this->expectException(InvalidState::class);
-		$this->expectExceptionMessage(<<<'MSG'
+		$this->expectExceptionMessage(
+			<<<'MSG'
 Context: Trying to configure 'monolog > handlers > tracyLogger'.
 Problem: This option is reserved for Tracy handler and can be configured only
          when 'monolog > bridge > toTracy' is enabled.
 Solution: Set 'toTracy' option to `true` or remove Tracy handler configuration.
-MSG);
+MSG,
+		);
 
 		$configurator->createContainer();
 	}
@@ -716,13 +728,15 @@ MSG);
 		$configurator->addConfig(__DIR__ . '/config/tracy.toTracy.missingService.neon');
 
 		$this->expectException(InvalidState::class);
-		$this->expectExceptionMessage(<<<'MSG'
+		$this->expectExceptionMessage(
+			<<<'MSG'
 Context: Trying to configure 'monolog > bridge > toTracy'.
 Problem: Option requires package 'tracy/tracy' to be installed and
          'Tracy\ILogger' registered as a service.
 Solution: Ensure Tracy is installed and register as a service or remove the
           configuration.
-MSG);
+MSG,
+		);
 
 		$configurator->createContainer();
 	}
@@ -797,11 +811,13 @@ MSG);
 		$configurator->addConfig(__DIR__ . '/config/tracy.fromTracy.unknownChannels.neon');
 
 		$this->expectException(InvalidArgument::class);
-		$this->expectExceptionMessage(<<<'MSG'
+		$this->expectExceptionMessage(
+			<<<'MSG'
 Context: Trying to configure 'monolog > bridge > fromTracy'.
 Problem: Some of the given channels do not exist - 'unknown1, unknown2'.
 Solution: Register these channels or remove them from configured option.
-MSG);
+MSG,
+		);
 
 		$configurator->createContainer();
 	}
@@ -813,28 +829,36 @@ MSG);
 		$configurator->addConfig(__DIR__ . '/config/tracy.fromTracy.missingService.neon');
 
 		$this->expectException(InvalidState::class);
-		$this->expectExceptionMessage(<<<'MSG'
+		$this->expectExceptionMessage(
+			<<<'MSG'
 Context: Trying to configure 'monolog > bridge > fromTracy'.
 Problem: Option requires package 'tracy/tracy' to be installed and
          'Tracy\ILogger' registered as a service.
 Solution: Ensure Tracy is installed and register as a service or remove the
           configuration.
-MSG);
+MSG,
+		);
 
 		$configurator->createContainer();
 	}
 
 	/**
 	 * @runInSeparateProcess
+	 * @dataProvider provideTracyBothDirections
 	 */
-	public function testTracyBothDirections(): void
+	public function testTracyBothDirections(string $config, bool $enableDebugger): void
 	{
+		if ($enableDebugger) {
+			Debugger::enable();
+		}
+
 		$tracyLogger = new TracyTestLogger();
+		self::assertNull($tracyLogger->fromEmail);
 		Debugger::setLogger($tracyLogger);
 
 		$configurator = new ManualConfigurator($this->rootDir);
 		$configurator->setForceReloadContainer();
-		$configurator->addConfig(__DIR__ . '/config/tracy.bothDirections.neon');
+		$configurator->addConfig($config);
 
 		$container = $configurator->createContainer();
 
@@ -853,6 +877,12 @@ MSG);
 
 		$tracyLogger = $container->getService('tracy.logger');
 		self::assertInstanceOf(TracyTestLogger::class, $tracyLogger);
+		if ($enableDebugger) {
+			self::assertSame('foo@bar.baz', $tracyLogger->fromEmail);
+		} else {
+			self::assertNull($tracyLogger->fromEmail);
+		}
+
 		self::assertInstanceOf(LazyTracyToPsrLogger::class, $container->getByType(ILogger::class));
 
 		$handler = $container->getService('monolog.handler.h_a');
@@ -879,6 +909,14 @@ MSG);
 			],
 			$this->filterRecords($handler->getRecords()),
 		);
+	}
+
+	public function provideTracyBothDirections(): Generator
+	{
+		yield [__DIR__ . '/config/tracy.bothDirections.monologFirst.neon', true];
+		yield [__DIR__ . '/config/tracy.bothDirections.monologFirst.neon', false];
+		yield [__DIR__ . '/config/tracy.bothDirections.tracyFirst.neon', true];
+		yield [__DIR__ . '/config/tracy.bothDirections.tracyFirst.neon', false];
 	}
 
 	/**
@@ -914,13 +952,15 @@ MSG);
 		$configurator->addConfig(__DIR__ . '/config/tracy.tracyPanel.missingService.neon');
 
 		$this->expectException(InvalidState::class);
-		$this->expectExceptionMessage(<<<'MSG'
+		$this->expectExceptionMessage(
+			<<<'MSG'
 Context: Trying to configure 'monolog > bridge > tracyPanel'.
 Problem: Option requires package 'tracy/tracy' to be installed and
          'Tracy\ILogger' registered as a service.
 Solution: Ensure Tracy is installed and register as a service or remove the
           configuration.
-MSG);
+MSG,
+		);
 
 		$configurator->createContainer();
 	}
@@ -1061,12 +1101,14 @@ MSG);
 		$configurator->addConfig(__DIR__ . '/config/staticGetter.unknown.neon');
 
 		$this->expectException(InvalidArgument::class);
-		$this->expectExceptionMessage(<<<'MSG'
+		$this->expectExceptionMessage(
+			<<<'MSG'
 Context: Trying to configure 'monolog > staticGetter'.
 Problem: Given channel name 'main' is unknown.
 Solution: Use only name of channel listed in 'monolog > channels' or remove the
           option.
-MSG);
+MSG,
+		);
 
 		$configurator->createContainer();
 	}

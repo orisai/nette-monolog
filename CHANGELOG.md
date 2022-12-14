@@ -7,7 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased](https://github.com/orisai/nette-monolog/compare/1.2.4...HEAD)
 
+### Fixed
+
+- Configuring `Tracy\Logger` via `TracyExtension` works correctly in case `MonologExtension` is loaded
+  before `TracyExtension` (opposite order worked before and is unaffected by this change)
+
 ## [1.2.4](https://github.com/orisai/nette-monolog/compare/1.2.3...1.2.4) - 2022-12-09
+
+### Changed
 
 - Composer
 	- allows PHP 8.2

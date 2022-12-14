@@ -10,6 +10,8 @@ final class TracyTestLogger implements ILogger
 	/** @var array<array{0: mixed, 1: mixed}> */
 	private array $records = [];
 
+	public ?string $fromEmail = null;
+
 	/**
 	 * @param mixed $value
 	 * @param mixed $level
@@ -25,6 +27,11 @@ final class TracyTestLogger implements ILogger
 	public function getRecords(): array
 	{
 		return $this->records;
+	}
+
+	public function setFromEmail(?string $fromEmail): void
+	{
+		$this->fromEmail = $fromEmail;
 	}
 
 }

@@ -1,0 +1,23 @@
+extensions:
+	tracy: Tracy\Bridges\Nette\TracyExtension
+	monolog: OriNette\Monolog\DI\MonologExtension
+
+monolog:
+	debug: true
+
+	channels:
+		ch1:
+			autowired: true
+
+	handlers:
+		h_a:
+			service: Monolog\Handler\TestHandler
+
+	bridge:
+		toTracy: true
+
+		fromTracy:
+			- ch1
+
+tracy:
+	fromEmail: foo@bar.baz

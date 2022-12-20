@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased](https://github.com/orisai/nette-monolog/compare/1.2.5...HEAD)
 
+### Changed
+
+- `Logtail` - sends json pretty formatted
+
 ## [1.2.5](https://github.com/orisai/nette-monolog/compare/1.2.4...1.2.5) - 2022-12-14
 
 ### Fixed

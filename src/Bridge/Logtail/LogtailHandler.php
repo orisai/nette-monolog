@@ -2,6 +2,7 @@
 
 namespace OriNette\Monolog\Bridge\Logtail;
 
+use DateTimeImmutable;
 use Monolog\Formatter\FormatterInterface;
 use Monolog\Formatter\NormalizerFormatter;
 use Monolog\Handler\AbstractProcessingHandler;
@@ -38,12 +39,17 @@ final class LogtailHandler extends AbstractProcessingHandler
 	 */
 	protected function write($record): void
 	{
-		$record = $record instanceof LogRecord
-			? $record->toArray()
-			: $record['formatted'];
+		if ($record instanceof LogRecord) {
+			$datetime = $record->datetime;
+			$record = $record->toArray();
+		} else {
+			$datetime = $record['datetime'];
+			assert($datetime instanceof DateTimeImmutable);
+			unset($record['formatted']);
+		}
 
-		$record['dt'] = $record['datetime'];
 		unset($record['datetime']);
+		$record['dt'] = $datetime->format($datetime::ATOM);
 
 		$this->records[] = $record;
 	}

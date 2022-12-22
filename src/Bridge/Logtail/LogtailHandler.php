@@ -11,6 +11,7 @@ use Monolog\Level;
 use Monolog\Logger;
 use Monolog\LogRecord;
 use Psr\Log\LogLevel;
+use Throwable;
 use function register_shutdown_function;
 
 final class LogtailHandler extends AbstractProcessingHandler
@@ -31,7 +32,7 @@ final class LogtailHandler extends AbstractProcessingHandler
 		$this->client = $client;
 
 		// __destruct() is not called on fatal errors
-		register_shutdown_function(fn () => $this->close());
+		register_shutdown_function(fn () => $this->saveClose());
 	}
 
 	/**
@@ -67,6 +68,15 @@ final class LogtailHandler extends AbstractProcessingHandler
 		$this->flush();
 
 		parent::close();
+	}
+
+	private function saveClose(): void
+	{
+		try {
+			$this->close();
+		} catch (Throwable $throwable) {
+			// Error must not be shown, because shutdown may happen after error handler shutdown
+		}
 	}
 
 	public function reset(): void

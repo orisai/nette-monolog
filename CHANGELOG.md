@@ -9,10 +9,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
-- `Logtail`
+- Logtail
   - sends json pretty formatted
   - setUrl() instead of setUri() (old method is deprecated)
   - `dt` field containing datetime is always properly formatted
+
+### Fixed
+
+- Logtail - exception thrown in shutdown function does not leak into page
+  - shutdown functions are called in fifo order and error handler is usually shut down before our handler
 
 ## [1.2.5](https://github.com/orisai/nette-monolog/compare/1.2.4...1.2.5) - 2022-12-14
 

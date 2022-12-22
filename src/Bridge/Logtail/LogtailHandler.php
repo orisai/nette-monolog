@@ -12,6 +12,7 @@ use Monolog\Logger;
 use Monolog\LogRecord;
 use Psr\Log\LogLevel;
 use Throwable;
+use function assert;
 use function register_shutdown_function;
 
 final class LogtailHandler extends AbstractProcessingHandler

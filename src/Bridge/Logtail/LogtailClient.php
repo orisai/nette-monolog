@@ -14,7 +14,7 @@ final class LogtailClient
 
 	private string $token;
 
-	private string $uri = 'https://in.logtail.com/';
+	private string $url = 'https://in.logtail.com/';
 
 	private ClientInterface $client;
 
@@ -35,9 +35,17 @@ final class LogtailClient
 		$this->streamFactory = $streamFactory;
 	}
 
+	/**
+	 * @deprecated use setUrl() instead
+	 */
 	public function setUri(string $uri): void
 	{
-		$this->uri = $uri;
+		$this->setUrl($uri);
+	}
+
+	public function setUrl(string $url): void
+	{
+		$this->url = $url;
 	}
 
 	/**
@@ -46,7 +54,7 @@ final class LogtailClient
 	 */
 	public function log(array $data): void
 	{
-		$request = $this->requestFactory->createRequest('POST', $this->uri);
+		$request = $this->requestFactory->createRequest('POST', $this->url);
 		$request = $request
 			->withHeader('Authorization', "Bearer $this->token")
 			->withHeader('Content-Type', 'application/json')

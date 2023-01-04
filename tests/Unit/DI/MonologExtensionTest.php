@@ -846,14 +846,9 @@ MSG,
 	 * @runInSeparateProcess
 	 * @dataProvider provideTracyBothDirections
 	 */
-	public function testTracyBothDirections(string $config, bool $enableDebugger): void
+	public function testTracyBothDirections(string $config): void
 	{
-		if ($enableDebugger) {
-			Debugger::enable();
-		}
-
 		$tracyLogger = new TracyTestLogger();
-		self::assertNull($tracyLogger->fromEmail);
 		Debugger::setLogger($tracyLogger);
 
 		$configurator = new ManualConfigurator($this->rootDir);
@@ -877,11 +872,6 @@ MSG,
 
 		$tracyLogger = $container->getService('tracy.logger');
 		self::assertInstanceOf(TracyTestLogger::class, $tracyLogger);
-		if ($enableDebugger) {
-			self::assertSame('foo@bar.baz', $tracyLogger->fromEmail);
-		} else {
-			self::assertNull($tracyLogger->fromEmail);
-		}
 
 		self::assertInstanceOf(LazyTracyToPsrLogger::class, $container->getByType(ILogger::class));
 
@@ -912,6 +902,55 @@ MSG,
 	}
 
 	public function provideTracyBothDirections(): Generator
+	{
+		yield [__DIR__ . '/config/tracy.bothDirections.monologFirst.neon'];
+		yield [__DIR__ . '/config/tracy.bothDirections.tracyFirst.neon'];
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 * @dataProvider provideTracyBothDirectionsWithOptions
+	 */
+	public function testTracyBothDirectionsWithOptions(string $config, bool $enableDebugger): void
+	{
+		if ($enableDebugger) {
+			Debugger::enable();
+		}
+
+		$configurator = new ManualConfigurator($this->rootDir);
+		$configurator->setForceReloadContainer();
+		$configurator->addConfig($config);
+
+		$container = $configurator->createContainer();
+
+		self::assertFalse($container->isCreated('monolog.handler.tracyLogger'));
+		self::assertFalse($container->isCreated('monolog.bridge.psrToTracy'));
+		self::assertTrue($container->isCreated('tracy.logger'));
+
+		$logger = $container->getService('monolog.channel.ch1');
+		self::assertInstanceOf(LoggerInterface::class, $logger);
+
+		self::assertTrue($container->isCreated('monolog.handler.tracyLogger'));
+		self::assertTrue($container->isCreated('monolog.bridge.psrToTracy'));
+
+		//No need to write logs
+		//$logger->notice('monolog');
+		//Debugger::log('tracy', ILogger::ERROR);
+
+		$tracyLogger = $container->getService('tracy.logger');
+		self::assertInstanceOf(\Tracy\Logger::class, $tracyLogger);
+		if ($enableDebugger) {
+			self::assertSame('foo@bar.baz', $tracyLogger->fromEmail);
+			self::assertSame('111 days', $tracyLogger->emailSnooze);
+			self::assertSame('send', $tracyLogger->mailer[1]);
+		} else {
+			self::assertNull($tracyLogger->fromEmail);
+			self::assertSame('2 days', $tracyLogger->emailSnooze);
+			self::assertSame('defaultMailer', $tracyLogger->mailer[1]);
+		}
+	}
+
+	public function provideTracyBothDirectionsWithOptions(): Generator
 	{
 		yield [__DIR__ . '/config/tracy.bothDirections.monologFirst.neon', true];
 		yield [__DIR__ . '/config/tracy.bothDirections.monologFirst.neon', false];

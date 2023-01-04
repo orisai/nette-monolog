@@ -21,3 +21,8 @@ monolog:
 
 tracy:
 	fromEmail: foo@bar.baz
+	emailSnooze: 111 days
+	netteMailer: true
+
+services:
+	- Tests\OriNette\Monolog\Doubles\TestMailer

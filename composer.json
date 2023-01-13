@@ -4,7 +4,6 @@
 	"keywords": [
 		"logger",
 		"logging",
-		"logtail",
 		"monolog",
 		"nette",
 		"orisai",
@@ -36,7 +35,6 @@
 		"nette/application": "^3.0.0",
 		"nette/mail": "^3.1.0",
 		"orisai/coding-standard": "^3.0.0",
-		"orisai/nette-http-client": "^1.0.0",
 		"phpstan/extension-installer": "^1.0.0",
 		"phpstan/phpstan": "^1.0.0",
 		"phpstan/phpstan-deprecation-rules": "^1.0.0",
@@ -45,7 +43,6 @@
 		"phpstan/phpstan-strict-rules": "^1.0.0",
 		"phpunit/phpunit": "^9.5.0",
 		"staabm/annotate-pull-request-from-checkstyle": "^1.7.0",
-		"symfony/http-client": "^5.3.0|^6.0.0",
 		"tracy/tracy": "^2.8.8"
 	},
 	"autoload": {

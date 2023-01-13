@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased](https://github.com/orisai/nette-monolog/compare/1.2.6...HEAD)
 
+### Removed
+
+- Logtail
+  - Technically a BC break but probably affecting almost no-one and also easy to fix
+  - Use [orisai/monolog-logtail](https://github.com/orisai/monolog-logtail) instead
+  - Sorry for inconvenience
+
 ## [1.2.6](https://github.com/orisai/nette-monolog/compare/1.2.5...1.2.6) - 2022-12-22
 
 ### Changed

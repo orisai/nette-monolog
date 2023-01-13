@@ -20,7 +20,6 @@
 		- [Logging to Tracy](#logging-to-tracy)
 		- [Error level mapping](#error-level-mapping)
 		- [Tracy bar panel](#tracy-bar-panel)
-	- [Logtail](#logtail)
 - [Efficiency](#efficiency)
 - [Static logger access](#static-logger-access)
 
@@ -512,33 +511,6 @@ orisai.monolog:
 ```
 
 ![panel screenshot](panel.png)
-
-### Logtail
-
-[Logtail](https://logtail.com) is a fast and flexible logging service with great UX. While they have their own Monolog
-integration we felt need for something more robust. Our handler utilizes PSR-18 and lazy-writes logs in batches to
-provide the best possible experience.
-
-To use `LogtailHandler` you will also need an PSR-18 client, e.g. from
-[orisai/nette-http-client](https://github.com/orisai/nette-http-client).
-
-```neon
-orisai.monolog:
-	handlers:
-		logtail:
-			service: OriNette\Monolog\Bridge\Logtail\LogtailHandler(
-				OriNette\Monolog\Bridge\Logtail\LogtailClient(%logtail.token%)
-			)
-
-			# You will probably don't want anything lower than warnings in logtail
-			# Only debug is configured because production is set to warning by default
-			level:
-				debug: warning
-
-parameters:
-	logtail:
-		token: <YOUR_LOGTAIL_TOKEN>
-```
 
 ## Efficiency
 

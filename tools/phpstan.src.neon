@@ -10,7 +10,6 @@ parameters:
 		- message: '#^Parameter \#1 \$record of method (.+)HandlerAdapter\:\:processRecord\(\) expects Monolog\\LogRecord, array\|Monolog\\LogRecord given\.$#'
 		  path: ../src/HandlerAdapter.php
 		  count: 1
-		- '#^Fetching deprecated class constant (.+) of class Monolog\\Logger(.+)#'
 
 		# Workaround for TracyExtension setting Tracy\Logger options via static method instead of service
 		- message: '#^Variable (property access|method call) on Tracy\\ILogger\.$#'

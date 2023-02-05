@@ -43,7 +43,7 @@
 		"phpstan/phpstan-strict-rules": "^1.0.0",
 		"phpunit/phpunit": "^9.5.0",
 		"staabm/annotate-pull-request-from-checkstyle": "^1.7.0",
-		"tracy/tracy": "^2.8.8"
+		"tracy/tracy": "v2.9.x-dev"
 	},
 	"autoload": {
 		"psr-4": {

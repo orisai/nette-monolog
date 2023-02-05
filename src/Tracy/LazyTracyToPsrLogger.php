@@ -6,8 +6,10 @@ use Nette\DI\Container;
 use OriNette\DI\Services\ServiceManager;
 use Orisai\Exceptions\Logic\MemberInaccessible;
 use Psr\Log\LoggerInterface;
+use ReflectionClass;
 use Tracy\Bridges\Psr\PsrToTracyLoggerAdapter;
 use Tracy\ILogger;
+use function property_exists;
 
 final class LazyTracyToPsrLogger extends ServiceManager implements ILogger
 {
@@ -17,10 +19,23 @@ final class LazyTracyToPsrLogger extends ServiceManager implements ILogger
 
 	private ?ILogger $tracyOriginalLogger;
 
+	private bool $loggerOptionsSet = false;
+
+	/** @var mixed */
+	public $fromEmail;
+
+	/** @var mixed */
+	public $emailSnooze;
+
+	/** @var mixed */
+	public $mailer;
+
 	public function __construct(array $serviceMap, Container $container, ?ILogger $tracyOriginalLogger = null)
 	{
 		parent::__construct($serviceMap, $container);
 		$this->tracyOriginalLogger = $tracyOriginalLogger;
+
+		unset($this->fromEmail, $this->emailSnooze, $this->mailer);
 	}
 
 	/**
@@ -29,6 +44,33 @@ final class LazyTracyToPsrLogger extends ServiceManager implements ILogger
 	 */
 	public function log($value, $level = self::INFO): void
 	{
+		if (!$this->loggerOptionsSet && $this->tracyOriginalLogger !== null) {
+			$reflector = new ReflectionClass($this);
+
+			if (
+				property_exists($this->tracyOriginalLogger, 'fromEmail')
+				&& $reflector->getProperty('fromEmail')->isInitialized($this)
+			) {
+				$this->tracyOriginalLogger->fromEmail = $this->fromEmail;
+			}
+
+			if (
+				property_exists($this->tracyOriginalLogger, 'emailSnooze')
+				&& $reflector->getProperty('emailSnooze')->isInitialized($this)
+			) {
+				$this->tracyOriginalLogger->emailSnooze = $this->emailSnooze;
+			}
+
+			if (
+				property_exists($this->tracyOriginalLogger, 'mailer')
+				&& $reflector->getProperty('mailer')->isInitialized($this)
+			) {
+				$this->tracyOriginalLogger->mailer = $this->mailer;
+			}
+
+			$this->loggerOptionsSet = true;
+		}
+
 		foreach ($this->getLoggers() as $logger) {
 			$logger->log($value, $level);
 		}

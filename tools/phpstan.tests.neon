@@ -16,9 +16,6 @@ parameters:
 		- '#^Class (.+)Logger extends @final class Monolog\\Logger\.$#'
 
 		# Workaround for TracyExtension setting Tracy\Logger options via static method instead of service
-		- message: '#^Access to an undefined property (.+)$#'
-		  path: ../tests/Unit/Tracy/LazyTracyToPsrLoggerTest.php
-		  count: 5
 		- message: '#^Call to an undefined method (.+)#'
 		  path: ../tests/Unit/Tracy/LazyTracyToPsrLoggerTest.php
 		  count: 2

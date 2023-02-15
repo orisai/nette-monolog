@@ -1,0 +1,46 @@
+includes:
+	- ../vendor/phpstan/phpstan/conf/bleedingEdge.neon
+	- phpstan.baseline.neon
+
+parameters:
+	phpVersion: 80100
+	level: 8
+	tmpDir: ../var/tools/PHPStan
+	resultCachePath: %currentWorkingDirectory%/var/tools/PHPStan/resultCache.php
+
+	checkBenevolentUnionTypes: true
+	checkMissingCallableSignature: true
+	checkInternalClassCaseSensitivity: true
+	checkTooWideReturnTypesInProtectedAndPublicMethods: true
+
+	exceptions:
+		check:
+			missingCheckedExceptionInThrows: true
+			tooWideThrowType: true
+		checkedExceptionClasses:
+			- Orisai\Exceptions\Check\CheckedException
+
+	ignoreErrors:
+		# Monolog V2 and V3 compatibility
+		-
+			message: '#^Parameter \#1 \$record of method (.+)HandlerAdapter\:\:processRecord\(\) expects Monolog\\LogRecord, array\|Monolog\\LogRecord given\.$#'
+			path: ../src/HandlerAdapter.php
+			count: 1
+		- '#^Fetching deprecated class constant (.+) of class Monolog\\Logger(.+)#'
+
+		# Workaround for TracyExtension setting Tracy\Logger options via static method instead of service
+		-
+			message: '#^Variable (property access|method call) on Tracy\\ILogger\.$#'
+			path: ../src/Tracy/LazyTracyToPsrLogger.php
+			count: 4
+		-
+			message: '#^Access to an undefined property (.+)$#'
+			path: ../tests/Unit/Tracy/LazyTracyToPsrLoggerTest.php
+			count: 5
+		-
+			message: '#^Call to an undefined method (.+)#'
+			path: ../tests/Unit/Tracy/LazyTracyToPsrLoggerTest.php
+			count: 2
+
+		# We extend logger just for tests
+		- '#^Class (.+)Logger extends @final class Monolog\\Logger\.$#'

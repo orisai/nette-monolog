@@ -17,8 +17,8 @@
 </p>
 
 <p align="center">
-	<a href="https://github.com/orisai/nette-monolog/actions?query=workflow%3Aci">
-		<img src="https://github.com/orisai/nette-monolog/workflows/ci/badge.svg">
+	<a href="https://github.com/orisai/nette-monolog/actions?query=workflow%3ACI">
+		<img src="https://github.com/orisai/nette-monolog/workflows/CI/badge.svg">
 	</a>
 	<a href="https://coveralls.io/r/orisai/nette-monolog">
 		<img src="https://badgen.net/coveralls/c/github/orisai/nette-monolog/v1.x?cache=300">

@@ -11,11 +11,6 @@ parameters:
 			path: ../tests/Doubles/ExtendedTestHandler.php
 
 		-
-			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
-			count: 1
-			path: ../tests/Doubles/SimpleTestHandler.php
-
-		-
 			message: "#^Instanceof between Monolog\\\\Level and Monolog\\\\Level will always evaluate to true\\.$#"
 			count: 1
 			path: ../tests/Doubles/SimpleTestHandler.php

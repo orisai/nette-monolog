@@ -44,6 +44,7 @@ final class TracyPanelHandler extends AbstractProcessingHandler implements IBarP
 	 */
 	protected function write($record): void
 	{
+		/** @infection-ignore-all */
 		if ($record instanceof LogRecord) {
 			$record = $record->toArray();
 		}

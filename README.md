@@ -57,9 +57,9 @@ final class ImportantCode
 		try {
 			// Dark magic
 
-			$this->logger->info('Everything is fine');
+			$this->logger->info('Everything is fine!');
 		} catch (WeHaveAProblemHouston $e) {
-			$this->logger->critical('We are all gonna die.', [
+			$this->logger->critical('Dumpster fire!', [
 				'exception' => $e,
 			]);
 		}

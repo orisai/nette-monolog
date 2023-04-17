@@ -11,16 +11,6 @@ parameters:
 			path: ../tests/Doubles/ExtendedTestHandler.php
 
 		-
-			message: "#^Instanceof between Monolog\\\\Level and Monolog\\\\Level will always evaluate to true\\.$#"
-			count: 1
-			path: ../tests/Doubles/SimpleTestHandler.php
-
-		-
-			message: "#^Parameter \\#1 \\$level of static method Monolog\\\\Logger\\:\\:toMonologLevel\\(\\) expects 100\\|200\\|250\\|300\\|400\\|500\\|550\\|600\\|'ALERT'\\|'alert'\\|'CRITICAL'\\|'critical'\\|'DEBUG'\\|'debug'\\|'EMERGENCY'\\|'emergency'\\|'ERROR'\\|'error'\\|'INFO'\\|'info'\\|'NOTICE'\\|'notice'\\|'WARNING'\\|'warning'\\|Monolog\\\\Level, int\\|Monolog\\\\Level\\|string given\\.$#"
-			count: 1
-			path: ../tests/Doubles/SimpleTestHandler.php
-
-		-
 			message: "#^Method Tests\\\\OriNette\\\\Monolog\\\\Doubles\\\\TestLogger\\:\\:log\\(\\) has parameter \\$context with no value type specified in iterable type array\\.$#"
 			count: 1
 			path: ../tests/Doubles/TestLogger.php
@@ -29,6 +19,16 @@ parameters:
 			message: "#^Property Tests\\\\OriNette\\\\Monolog\\\\Doubles\\\\TestMailer\\:\\:\\$mails type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: ../tests/Doubles/TestMailer.php
+
+		-
+			message: "#^Instanceof between Monolog\\\\Level and Monolog\\\\Level will always evaluate to true\\.$#"
+			count: 1
+			path: ../tests/Doubles/UnresettableSimpleTestHandler.php
+
+		-
+			message: "#^Parameter \\#1 \\$level of static method Monolog\\\\Logger\\:\\:toMonologLevel\\(\\) expects 100\\|200\\|250\\|300\\|400\\|500\\|550\\|600\\|'ALERT'\\|'alert'\\|'CRITICAL'\\|'critical'\\|'DEBUG'\\|'debug'\\|'EMERGENCY'\\|'emergency'\\|'ERROR'\\|'error'\\|'INFO'\\|'info'\\|'NOTICE'\\|'notice'\\|'WARNING'\\|'warning'\\|Monolog\\\\Level, int\\|Monolog\\\\Level\\|string given\\.$#"
+			count: 1
+			path: ../tests/Doubles/UnresettableSimpleTestHandler.php
 
 		-
 			message: "#^Cannot access offset 1 on callable\\(\\)\\: mixed\\.$#"

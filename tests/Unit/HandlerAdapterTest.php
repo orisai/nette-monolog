@@ -9,6 +9,7 @@ use Monolog\Processor\UidProcessor;
 use OriNette\Monolog\HandlerAdapter;
 use PHPUnit\Framework\TestCase;
 use Tests\OriNette\Monolog\Doubles\SimpleTestHandler;
+use Tests\OriNette\Monolog\Doubles\UnresettableSimpleTestHandler;
 
 final class HandlerAdapterTest extends TestCase
 {
@@ -105,6 +106,25 @@ final class HandlerAdapterTest extends TestCase
 
 		$logger->debug('debug');
 		self::assertCount(1, $wrappedHandler->getRecords());
+
+		$logger->close();
+		self::assertCount(0, $wrappedHandler->getRecords());
+	}
+
+	public function testFlushWithoutResettable(): void
+	{
+		$wrappedHandler = new UnresettableSimpleTestHandler();
+		$handler = new HandlerAdapter($wrappedHandler, Logger::DEBUG, true, []);
+		$logger = new Logger('main', [$handler]);
+
+		$logger->debug('debug');
+		self::assertCount(1, $wrappedHandler->getRecords());
+
+		$logger->reset();
+		self::assertCount(1, $wrappedHandler->getRecords());
+
+		$logger->debug('debug');
+		self::assertCount(2, $wrappedHandler->getRecords());
 
 		$logger->close();
 		self::assertCount(0, $wrappedHandler->getRecords());

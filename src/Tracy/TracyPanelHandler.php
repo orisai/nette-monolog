@@ -13,6 +13,9 @@ final class TracyPanelHandler extends AbstractProcessingHandler implements IBarP
 	/** @var array<array<mixed>> */
 	private array $records = [];
 
+	/**
+	 * @phpstan-impure
+	 */
 	public function getTab(): string
 	{
 		return Helpers::capture(function (): void {
@@ -26,6 +29,9 @@ final class TracyPanelHandler extends AbstractProcessingHandler implements IBarP
 		});
 	}
 
+	/**
+	 * @phpstan-impure
+	 */
 	public function getPanel(): string
 	{
 		return Helpers::capture(function (): void {

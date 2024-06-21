@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased](https://github.com/orisai/nette-monolog/compare/1.3.0...v1.x)
 
+### Added
+
+- Allow PHP 8.3
+
 ## [1.3.0](https://github.com/orisai/nette-monolog/compare/1.2.6...1.3.0) - 2023-01-13
 
 ### Removed

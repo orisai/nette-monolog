@@ -3,7 +3,7 @@ includes:
 	- phpstan.baseline.neon
 
 parameters:
-	phpVersion: 80100
+	phpVersion: 80300
 	level: 8
 	tmpDir: ../var/tools/PHPStan
 	resultCachePath: %currentWorkingDirectory%/var/tools/PHPStan/resultCache.php
@@ -12,6 +12,8 @@ parameters:
 	checkMissingCallableSignature: true
 	checkInternalClassCaseSensitivity: true
 	checkTooWideReturnTypesInProtectedAndPublicMethods: true
+	reportAnyTypeWideningInVarTag: true
+	reportPossiblyNonexistentConstantArrayOffset: true
 
 	exceptions:
 		check:
@@ -34,13 +36,11 @@ parameters:
 			path: ../src/Tracy/LazyTracyToPsrLogger.php
 			count: 4
 		-
-			message: '#^Access to an undefined property (.+)$#'
+			message: '#^Access to an undefined property (.+)LazyTracyToPsrLogger\:\:\$fromEmail\.$#'
 			path: ../tests/Unit/Tracy/LazyTracyToPsrLoggerTest.php
-			count: 5
 		-
-			message: '#^Call to an undefined method (.+)#'
+			message: '#^Call to an undefined method (.+)LazyTracyToPsrLogger\:\:setFromEmail\(\)\.$#'
 			path: ../tests/Unit/Tracy/LazyTracyToPsrLoggerTest.php
-			count: 2
 
 		# We extend logger just for tests
 		- '#^Class (.+)Logger extends @final class Monolog\\Logger\.$#'

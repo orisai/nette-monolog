@@ -31,7 +31,7 @@ MSG);
 	public function testOk(): void
 	{
 		$configurator = new ManualConfigurator(dirname(__DIR__, 2));
-		$configurator->setDebugMode(true);
+		$configurator->setForceReloadContainer();
 
 		$configurator->addConfig(__DIR__ . '/StaticLoggerGetter.neon');
 

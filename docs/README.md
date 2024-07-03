@@ -492,11 +492,11 @@ mapped:
 	</tr>
 	<tr>
 		<td>[custom] (with \Throwable)</td>
-		<td>error</td>
+		<td>error (custom_level is available in context)</td>
 	</tr>
 	<tr>
 		<td>[custom] (with any other value)</td>
-		<td>info</td>
+		<td>info (custom_level is available in context)</td>
 	</tr>
 </tbody>
 </table>

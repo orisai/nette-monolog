@@ -38,12 +38,16 @@ final class TracyPanelHandlerTest extends TestCase
 				'extra' => [],
 			];
 
-		self::assertEmpty($handler->getTab());
-		self::assertEmpty($handler->getPanel());
+		$tabInit = $handler->getTab();
+		$panelInit = $handler->getPanel();
+		self::assertNotEmpty($tabInit);
+		self::assertNotEmpty($panelInit);
 
 		$handler->handle($record);
 		self::assertNotEmpty($handler->getTab());
 		self::assertNotEmpty($handler->getPanel());
+		self::assertNotSame($tabInit, $handler->getTab());
+		self::assertNotSame($panelInit, $handler->getPanel());
 
 		$handler->handle($record);
 		self::assertNotEmpty($handler->getTab());

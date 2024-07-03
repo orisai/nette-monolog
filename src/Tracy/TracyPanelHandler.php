@@ -19,11 +19,8 @@ final class TracyPanelHandler extends AbstractProcessingHandler implements IBarP
 	public function getTab(): string
 	{
 		return Helpers::capture(function (): void {
+			// phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 			$records = $this->records;
-
-			if ($records === []) {
-				return;
-			}
 
 			require __DIR__ . '/TracyPanelHandler.tab.phtml';
 		});
@@ -35,11 +32,8 @@ final class TracyPanelHandler extends AbstractProcessingHandler implements IBarP
 	public function getPanel(): string
 	{
 		return Helpers::capture(function (): void {
+			// phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 			$records = $this->records;
-
-			if ($records === []) {
-				return;
-			}
 
 			require __DIR__ . '/TracyPanelHandler.panel.phtml';
 		});

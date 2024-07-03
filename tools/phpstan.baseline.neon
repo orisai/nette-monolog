@@ -1,6 +1,11 @@
 parameters:
 	ignoreErrors:
 		-
+			message: "#^Only booleans are allowed in a ternary operator condition, \\(int\\|string\\) given\\.$#"
+			count: 1
+			path: ../src/Tracy/LazyTracyToPsrLogger.php
+
+		-
 			message: "#^Method Tests\\\\OriNette\\\\Monolog\\\\Doubles\\\\ExtendedTestHandler\\:\\:getProcessors\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 2
 			path: ../tests/Doubles/ExtendedTestHandler.php

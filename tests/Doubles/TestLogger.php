@@ -3,19 +3,17 @@
 namespace Tests\OriNette\Monolog\Doubles;
 
 use Psr\Log\AbstractLogger;
+use Stringable;
 
 class TestLogger extends AbstractLogger
 {
 
-	/** @var array<array<mixed>> */
+	/** @var list<array{level: mixed, message: string|Stringable, context: array<mixed>}> */
 	public array $records = [];
 
-	/** @var array<array<array<mixed>>> */
+	/** @var array<list<array{level: mixed, message: string|Stringable, context: array<mixed>}>> */
 	public array $recordsByLevel = [];
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function log($level, $message, array $context = []): void
 	{
 		$record = [

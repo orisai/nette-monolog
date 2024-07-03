@@ -2,11 +2,13 @@
 
 namespace Tests\OriNette\Monolog\Unit\Tracy;
 
+use Exception;
 use Nette\DI\Container;
 use OriNette\DI\Boot\ManualConfigurator;
 use OriNette\Monolog\Tracy\LazyTracyToPsrLogger;
 use Orisai\Exceptions\Logic\MemberInaccessible;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 use Tests\OriNette\Monolog\Doubles\TestLogger;
 use Tests\OriNette\Monolog\Doubles\TracyTestLogger;
 use function dirname;
@@ -54,6 +56,51 @@ final class LazyTracyToPsrLoggerTest extends TestCase
 			$logger1->records,
 		);
 		self::assertSame($logger1->records, $logger2->records);
+	}
+
+	public function testNonStringValues(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setForceReloadContainer();
+		$configurator->addConfig(__DIR__ . '/LazyTracyToPsrLogger.neon');
+
+		$container = $configurator->createContainer();
+
+		$logger = $container->getByType(LazyTracyToPsrLogger::class);
+
+		$logger->log($e1 = new Exception());
+		$logger->log($e2 = new RuntimeException('message', 123));
+		$logger->log(123);
+
+		$logger1 = $container->getService('logger.one');
+		self::assertInstanceOf(TestLogger::class, $logger1);
+
+		self::assertCount(3, $logger1->records);
+
+		$file = __FILE__;
+
+		$record = $logger1->records[0];
+		self::assertSame('info', $record['level']);
+		self::assertIsString($record['message']);
+		self::assertStringMatchesFormat("Exception: in $file:%s", $record['message']);
+		self::assertSame(
+			['exception' => $e1],
+			$record['context'],
+		);
+
+		$record = $logger1->records[1];
+		self::assertSame('info', $record['level']);
+		self::assertIsString($record['message']);
+		self::assertStringMatchesFormat("RuntimeException: message #123 in $file:%s", $record['message']);
+		self::assertSame(
+			['exception' => $e2],
+			$record['context'],
+		);
+
+		$record = $logger1->records[2];
+		self::assertSame('info', $record['level']);
+		self::assertSame('123', $record['message']);
+		self::assertSame([], $record['context']);
 	}
 
 	public function testMagicWithoutParentLogger(): void

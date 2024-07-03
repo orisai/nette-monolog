@@ -6,13 +6,27 @@ use Nette\DI\Container;
 use OriNette\DI\Services\ServiceManager;
 use Orisai\Exceptions\Logic\MemberInaccessible;
 use Psr\Log\LoggerInterface;
-use Tracy\Bridges\Psr\PsrToTracyLoggerAdapter;
+use Psr\Log\LogLevel;
+use Throwable;
+use Tracy\Dumper;
 use Tracy\ILogger;
+use function get_class;
+use function is_string;
+use function trim;
 
 final class LazyTracyToPsrLogger extends ServiceManager implements ILogger
 {
 
-	/** @var array<PsrToTracyLoggerAdapter>|null */
+	private const LevelMap = [
+		ILogger::DEBUG => LogLevel::DEBUG,
+		ILogger::INFO => LogLevel::INFO,
+		ILogger::WARNING => LogLevel::WARNING,
+		ILogger::ERROR => LogLevel::ERROR,
+		ILogger::EXCEPTION => LogLevel::ERROR,
+		ILogger::CRITICAL => LogLevel::CRITICAL,
+	];
+
+	/** @var array<LoggerInterface>|null */
 	private ?array $loggers = null;
 
 	private ?ILogger $tracyOriginalLogger;
@@ -25,17 +39,51 @@ final class LazyTracyToPsrLogger extends ServiceManager implements ILogger
 
 	/**
 	 * @param mixed $value
-	 * @param mixed $level
+	 * @param string $level
+	 *
+	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint
 	 */
 	public function log($value, $level = self::INFO): void
 	{
+		[$mappedLevel, $message, $context] = $this->transform($value, $level);
+
 		foreach ($this->getLoggers() as $logger) {
-			$logger->log($value, $level);
+			$logger->log($mappedLevel, $message, $context);
 		}
 	}
 
 	/**
-	 * @return array<PsrToTracyLoggerAdapter>
+	 * @param mixed $value
+	 * @return array{LogLevel::*, string, array<mixed>}
+	 */
+	private function transform($value, string $level): array
+	{
+		if ($value instanceof Throwable) {
+			$code = $value->getCode();
+			$exceptionMessage = $value->getMessage();
+			$message = get_class($value)
+				. ':'
+				. ($exceptionMessage !== '' ? " $exceptionMessage" : '')
+				. ($code ? " #$code" : '')
+				. " in {$value->getFile()}:{$value->getLine()}";
+			$context = ['exception' => $value];
+		} elseif (is_string($value)) {
+			$message = $value;
+			$context = [];
+		} else {
+			$message = trim(Dumper::toText($value));
+			$context = [];
+		}
+
+		return [
+			self::LevelMap[$level] ?? LogLevel::ERROR,
+			$message,
+			$context,
+		];
+	}
+
+	/**
+	 * @return array<LoggerInterface>
 	 */
 	private function getLoggers(): array
 	{
@@ -45,9 +93,7 @@ final class LazyTracyToPsrLogger extends ServiceManager implements ILogger
 
 		$loggers = [];
 		foreach ($this->getKeys() as $key) {
-			$loggers[] = new PsrToTracyLoggerAdapter(
-				$this->getTypedServiceOrThrow($key, LoggerInterface::class),
-			);
+			$loggers[] = $this->getTypedServiceOrThrow($key, LoggerInterface::class);
 		}
 
 		return $this->loggers = $loggers;

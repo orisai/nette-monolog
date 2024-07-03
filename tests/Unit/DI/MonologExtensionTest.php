@@ -858,7 +858,7 @@ MSG,
 		$container = $configurator->createContainer();
 
 		self::assertFalse($container->isCreated('monolog.handler.tracyLogger'));
-		self::assertFalse($container->isCreated('monolog.bridge.psrToTracy'));
+		self::assertTrue($container->isCreated('monolog.bridge.psrToTracy'));
 		self::assertTrue($container->isCreated('tracy.logger'));
 
 		$logger = $container->getService('monolog.channel.ch1');
@@ -924,7 +924,7 @@ MSG,
 		$container = $configurator->createContainer();
 
 		self::assertFalse($container->isCreated('monolog.handler.tracyLogger'));
-		self::assertFalse($container->isCreated('monolog.bridge.psrToTracy'));
+		self::assertTrue($container->isCreated('monolog.bridge.psrToTracy'));
 		self::assertTrue($container->isCreated('tracy.logger'));
 
 		$logger = $container->getService('monolog.channel.ch1');

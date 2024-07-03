@@ -17,3 +17,6 @@ monolog:
 
 	bridge:
 		fromTracy: ['ch1', 'ch3']
+
+services:
+	tracy.logger: Tests\OriNette\Monolog\Doubles\TracyTestLogger

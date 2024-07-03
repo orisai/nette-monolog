@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Tracy to PSR bridge
 	- custom levels are mapped to info instead of error if the logged value is not an exception
 	- custom levels are added to context key `custom_level`
+	- calls original Tracy logger directly instead of via Monolog to prevent modifying logs
+	  (prevents changing log level to PSR-compatible and prevents modifying message by Monolog)
 
 ## [1.3.1](https://github.com/orisai/nette-monolog/compare/1.3.0...1.3.1) - 2024-06-21
 

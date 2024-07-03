@@ -21,6 +21,7 @@ use OriNette\Monolog\HandlerAdapter;
 use OriNette\Monolog\LogFlusher;
 use OriNette\Monolog\StaticLoggerGetter;
 use OriNette\Monolog\Tracy\LazyTracyToPsrLogger;
+use OriNette\Monolog\Tracy\ToggleableTracyToPsrLoggerAdapter;
 use OriNette\Monolog\Tracy\TracyPanelHandler;
 use Orisai\Exceptions\Logic\InvalidArgument;
 use Orisai\Exceptions\Logic\InvalidState;
@@ -28,7 +29,6 @@ use Orisai\Exceptions\Message;
 use Psr\Log\LogLevel;
 use stdClass;
 use Tracy\Bar;
-use Tracy\Bridges\Psr\TracyToPsrLoggerAdapter;
 use Tracy\Debugger;
 use Tracy\ILogger;
 use function array_diff;
@@ -518,7 +518,7 @@ final class MonologExtension extends CompilerExtension
 
 		$builder->addDefinition($this->prefix('bridge.psrToTracy'))
 			->setFactory(
-				TracyToPsrLoggerAdapter::class,
+				ToggleableTracyToPsrLoggerAdapter::class,
 				[
 					$builder->getDefinition($tracyLoggerDefinitionName),
 				],
@@ -555,10 +555,15 @@ final class MonologExtension extends CompilerExtension
 			'channels',
 		);
 
+		$tracyAdapterDefinition = $builder->hasDefinition($this->prefix('bridge.psrToTracy'))
+			? $builder->getDefinition($this->prefix('bridge.psrToTracy'))
+			: null;
+
 		$tracyToPsrDefinition = $builder->addDefinition($this->prefix('bridge.tracyToPsr'))
 			->setFactory(LazyTracyToPsrLogger::class, [
 				'serviceMap' => $tracyToPsrChannelKeys,
 				'tracyOriginalLogger' => $tracyLoggerDefinition,
+				'toggleableTracyToPsrLoggerAdapter' => $tracyAdapterDefinition,
 			]);
 
 		$init = $this->getInitialization();

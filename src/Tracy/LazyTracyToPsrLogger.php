@@ -31,10 +31,18 @@ final class LazyTracyToPsrLogger extends ServiceManager implements ILogger
 
 	private ?ILogger $tracyOriginalLogger;
 
-	public function __construct(array $serviceMap, Container $container, ?ILogger $tracyOriginalLogger = null)
+	private ?ToggleableTracyToPsrLoggerAdapter $toggleableTracyToPsrLoggerAdapter;
+
+	public function __construct(
+		array $serviceMap,
+		Container $container,
+		?ILogger $tracyOriginalLogger = null,
+		?ToggleableTracyToPsrLoggerAdapter $toggleableTracyToPsrLoggerAdapter = null
+	)
 	{
 		parent::__construct($serviceMap, $container);
 		$this->tracyOriginalLogger = $tracyOriginalLogger;
+		$this->toggleableTracyToPsrLoggerAdapter = $toggleableTracyToPsrLoggerAdapter;
 	}
 
 	/**
@@ -45,10 +53,24 @@ final class LazyTracyToPsrLogger extends ServiceManager implements ILogger
 	 */
 	public function log($value, $level = self::INFO): void
 	{
+		if ($this->tracyOriginalLogger !== null) {
+			$this->tracyOriginalLogger->log($value, $level);
+		}
+
 		[$mappedLevel, $message, $context] = $this->transform($value, $level);
 
-		foreach ($this->getLoggers() as $logger) {
-			$logger->log($mappedLevel, $message, $context);
+		if ($this->toggleableTracyToPsrLoggerAdapter !== null) {
+			$this->toggleableTracyToPsrLoggerAdapter->enabled = false;
+		}
+
+		try {
+			foreach ($this->getLoggers() as $logger) {
+				$logger->log($mappedLevel, $message, $context);
+			}
+		} finally {
+			if ($this->toggleableTracyToPsrLoggerAdapter !== null) {
+				$this->toggleableTracyToPsrLoggerAdapter->enabled = true;
+			}
 		}
 	}
 

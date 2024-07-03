@@ -103,6 +103,31 @@ final class LazyTracyToPsrLoggerTest extends TestCase
 		self::assertSame([], $record['context']);
 	}
 
+	public function testCustomLogLevels(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setForceReloadContainer();
+		$configurator->addConfig(__DIR__ . '/LazyTracyToPsrLogger.neon');
+
+		$container = $configurator->createContainer();
+
+		$logger = $container->getByType(LazyTracyToPsrLogger::class);
+
+		$logger->log(new Exception(), 'custom');
+		$logger->log('message', 'custom');
+
+		$logger1 = $container->getService('logger.one');
+		self::assertInstanceOf(TestLogger::class, $logger1);
+
+		self::assertCount(2, $logger1->records);
+
+		$record = $logger1->records[0];
+		self::assertSame('error', $record['level']);
+
+		$record = $logger1->records[1];
+		self::assertSame('info', $record['level']);
+	}
+
 	public function testMagicWithoutParentLogger(): void
 	{
 		$logger = new LazyTracyToPsrLogger([], new Container());

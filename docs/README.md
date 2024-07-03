@@ -490,6 +490,14 @@ mapped:
 		<td>debug</td>
 		<td>debug</td>
 	</tr>
+	<tr>
+		<td>[custom] (with \Throwable)</td>
+		<td>error</td>
+	</tr>
+	<tr>
+		<td>[custom] (with any other value)</td>
+		<td>info</td>
+	</tr>
 </tbody>
 </table>
 

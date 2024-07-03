@@ -58,6 +58,14 @@ final class LazyTracyToPsrLogger extends ServiceManager implements ILogger
 	 */
 	private function transform($value, string $level): array
 	{
+		if (isset(self::LevelMap[$level])) {
+			$mappedLevel = self::LevelMap[$level];
+		} elseif ($value instanceof Throwable) {
+			$mappedLevel = LogLevel::ERROR;
+		} else {
+			$mappedLevel = LogLevel::INFO;
+		}
+
 		if ($value instanceof Throwable) {
 			$code = $value->getCode();
 			$exceptionMessage = $value->getMessage();
@@ -76,7 +84,7 @@ final class LazyTracyToPsrLogger extends ServiceManager implements ILogger
 		}
 
 		return [
-			self::LevelMap[$level] ?? LogLevel::ERROR,
+			$mappedLevel,
 			$message,
 			$context,
 		];

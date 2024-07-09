@@ -22,7 +22,7 @@ final class LazyTracyToPsrLogger extends ServiceManager implements ILogger
 		ILogger::INFO => LogLevel::INFO,
 		ILogger::WARNING => LogLevel::WARNING,
 		ILogger::ERROR => LogLevel::ERROR,
-		ILogger::EXCEPTION => LogLevel::ERROR,
+		ILogger::EXCEPTION => LogLevel::CRITICAL,
 		ILogger::CRITICAL => LogLevel::CRITICAL,
 	];
 

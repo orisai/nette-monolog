@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased](https://github.com/orisai/nette-monolog/compare/1.4.0...v1.x)
 
+### Changed
+
+- Tracy to PSR bridge
+	- Level `exception` is mapped to level `critical` instead of `error`. Purpose of this change is to distinguish in
+	  Monolog between exceptions and lesser problems like PHP's notices and warnings that are logged with level `error`
+	  by Tracy. It also matches PSR-3 description of `critical` level that says one of the purposes of `critical` level
+	  is log exceptions.
+
 ## [1.4.0](https://github.com/orisai/nette-monolog/compare/1.3.1...1.4.0) - 2024-07-04
 
 ### Changed

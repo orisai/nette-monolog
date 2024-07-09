@@ -18,7 +18,6 @@
 	- [Tracy](#tracy)
 		- [Logging from Tracy](#logging-from-tracy)
 		- [Logging to Tracy](#logging-to-tracy)
-		- [Error level mapping](#error-level-mapping)
 		- [Tracy bar panel](#tracy-bar-panel)
 - [Efficiency](#efficiency)
 - [Static logger access](#static-logger-access)
@@ -431,6 +430,50 @@ orisai.monolog:
 			- anotherChannelName
 ```
 
+This is how levels are mapped from Tracy to Monolog:
+
+<table class="tg">
+<thead>
+	<tr>
+		<th>Tracy</th>
+		<th>Monolog</th>
+	</tr>
+</thead>
+<tbody>
+	<tr>
+		<td>critical</td>
+		<td rowspan="2">critical</td>
+	</tr>
+	<tr>
+		<td>exception</td>
+	</tr>
+	<tr>
+		<td>error</td>
+		<td>error</td>
+	</tr>
+	<tr>
+		<td>warning</td>
+		<td>warning</td>
+	</tr>
+	<tr>
+		<td>info</td>
+		<td>info</td>
+	</tr>
+	<tr>
+		<td>debug</td>
+		<td>debug</td>
+	</tr>
+	<tr>
+		<td>[custom] (with \Throwable)</td>
+		<td>error (custom_level is available in context)</td>
+	</tr>
+	<tr>
+		<td>[custom] (with any other value)</td>
+		<td>info (custom_level is available in context)</td>
+	</tr>
+</tbody>
+</table>
+
 #### Logging to Tracy
 
 For logging *to* Tracy *from* Monolog, enable `toTracy` option.
@@ -448,22 +491,19 @@ orisai.monolog:
 		toTracy: true
 ```
 
-#### Error level mapping
-
-Tracy don't have same error levels as Monolog, following comparison table should help you understand how levels are
-mapped:
+This is how levels are mapped from Monolog to Tracy:
 
 <table class="tg">
 <thead>
 	<tr>
-		<th>Tracy</th>
 		<th>Monolog</th>
+		<th>Tracy</th>
 	</tr>
 </thead>
 <tbody>
 	<tr>
-		<td rowspan="3">critical</td>
 		<td>emergency</td>
+		<td rowspan="3">critical</td>
 	</tr>
 	<tr>
 		<td>alert</td>
@@ -476,8 +516,8 @@ mapped:
 		<td>error</td>
 	</tr>
 	<tr>
-		<td rowspan="2">warning</td>
 		<td>warning</td>
+		<td rowspan="2">warning</td>
 	</tr>
 	<tr>
 		<td>notice</td>
@@ -489,14 +529,6 @@ mapped:
 	<tr>
 		<td>debug</td>
 		<td>debug</td>
-	</tr>
-	<tr>
-		<td>[custom] (with \Throwable)</td>
-		<td>error (custom_level is available in context)</td>
-	</tr>
-	<tr>
-		<td>[custom] (with any other value)</td>
-		<td>info (custom_level is available in context)</td>
 	</tr>
 </tbody>
 </table>

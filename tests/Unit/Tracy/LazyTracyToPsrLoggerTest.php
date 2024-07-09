@@ -102,7 +102,7 @@ final class LazyTracyToPsrLoggerTest extends TestCase
 					'context' => [],
 				],
 				[
-					'level' => 'error',
+					'level' => 'critical',
 					'message' => '5',
 					'context' => [],
 				],

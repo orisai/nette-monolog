@@ -11,6 +11,7 @@ use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Tests\OriNette\Monolog\Doubles\TestLogger;
 use Tests\OriNette\Monolog\Doubles\TracyTestLogger;
+use Tracy\ILogger;
 use function dirname;
 
 final class LazyTracyToPsrLoggerTest extends TestCase
@@ -56,6 +57,63 @@ final class LazyTracyToPsrLoggerTest extends TestCase
 			$logger1->records,
 		);
 		self::assertSame($logger1->records, $logger2->records);
+	}
+
+	public function testLevel(): void
+	{
+		$configurator = new ManualConfigurator(dirname(__DIR__, 3));
+		$configurator->setForceReloadContainer();
+		$configurator->addConfig(__DIR__ . '/LazyTracyToPsrLogger.neon');
+
+		$container = $configurator->createContainer();
+
+		$tracyLogger = $container->getByType(LazyTracyToPsrLogger::class);
+
+		$psrLogger = $container->getService('logger.one');
+		self::assertInstanceOf(TestLogger::class, $psrLogger);
+
+		$tracyLogger->log('1', ILogger::DEBUG);
+		$tracyLogger->log('2', ILogger::INFO);
+		$tracyLogger->log('3', ILogger::WARNING);
+		$tracyLogger->log('4', ILogger::ERROR);
+		$tracyLogger->log('5', ILogger::EXCEPTION);
+		$tracyLogger->log('6', ILogger::CRITICAL);
+
+		self::assertSame(
+			[
+				[
+					'level' => 'debug',
+					'message' => '1',
+					'context' => [],
+				],
+				[
+					'level' => 'info',
+					'message' => '2',
+					'context' => [],
+				],
+				[
+					'level' => 'warning',
+					'message' => '3',
+					'context' => [],
+				],
+				[
+					'level' => 'error',
+					'message' => '4',
+					'context' => [],
+				],
+				[
+					'level' => 'error',
+					'message' => '5',
+					'context' => [],
+				],
+				[
+					'level' => 'critical',
+					'message' => '6',
+					'context' => [],
+				],
+			],
+			$psrLogger->records,
+		);
 	}
 
 	public function testNonStringValues(): void

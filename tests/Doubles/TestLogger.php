@@ -14,6 +14,9 @@ class TestLogger extends AbstractLogger
 	/** @var array<list<array{level: mixed, message: string|Stringable, context: array<mixed>}>> */
 	public array $recordsByLevel = [];
 
+	/**
+	 * @param string|Stringable $message
+	 */
 	public function log($level, $message, array $context = []): void
 	{
 		$record = [

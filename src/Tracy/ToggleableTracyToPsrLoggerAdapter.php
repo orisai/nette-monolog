@@ -13,6 +13,7 @@ final class ToggleableTracyToPsrLoggerAdapter extends TracyToPsrLoggerAdapter
 	public bool $enabled = true;
 
 	/**
+	 * @param mixed $message
 	 * @param array<mixed> $context
 	 */
 	public function log($level, $message, array $context = []): void

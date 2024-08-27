@@ -16,11 +16,6 @@ parameters:
 			path: ../tests/Doubles/ExtendedTestHandler.php
 
 		-
-			message: "#^Method Tests\\\\OriNette\\\\Monolog\\\\Doubles\\\\TestLogger\\:\\:log\\(\\) has parameter \\$context with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: ../tests/Doubles/TestLogger.php
-
-		-
 			message: "#^Property Tests\\\\OriNette\\\\Monolog\\\\Doubles\\\\TestMailer\\:\\:\\$mails type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: ../tests/Doubles/TestMailer.php

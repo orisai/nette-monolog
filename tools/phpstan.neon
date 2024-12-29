@@ -25,7 +25,7 @@ parameters:
 	ignoreErrors:
 		# Monolog V2 and V3 compatibility
 		-
-			message: '#^Parameter \#1 \$record of method (.+)HandlerAdapter\:\:processRecord\(\) expects Monolog\\LogRecord, array\|Monolog\\LogRecord given\.$#'
+			message: '#^Parameter \#1 \$record of method (.+)HandlerAdapter\:\:processRecord\(\) expects Monolog\\LogRecord, array<mixed>\|Monolog\\LogRecord given\.$#'
 			path: ../src/HandlerAdapter.php
 			count: 1
 		- '#^Fetching deprecated class constant (.+) of class Monolog\\Logger(.+)#'

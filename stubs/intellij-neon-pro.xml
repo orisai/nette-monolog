@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE neon PUBLIC "-//NEON//Neon plugin XML V0.0.1//EN" "../.idea/intellij-neon-pro/xmlSources/Neon.xsd">
+<neon vendor="orisai/nette-monolog" version="1">
+	<extensions>
+		<extension type="OriNette\Monolog\DI\MonologExtension">
+			<schema>
+				<structure>
+					<field name="debug">
+						<bool/>
+					</field>
+					<field name="level" default="[]">
+						<structure>
+							<field name="debug" default="debug">
+								<string/>
+							</field>
+							<field name="production" default="warning">
+								<string/>
+							</field>
+						</structure>
+					</field>
+					<field name="channels" default="[]">
+						<arrayOf>
+							<key>
+								<string/>
+							</key>
+							<value>
+								<structure>
+									<field name="autowired" default="false">
+										<bool/>
+										<string/>
+									</field>
+									<field name="handlers" default="[]">
+										<useReusable ref="filtered-definition"/>
+									</field>
+									<field name="processors" default="[]">
+										<useReusable ref="filtered-definition"/>
+									</field>
+								</structure>
+							</value>
+						</arrayOf>
+					</field>
+					<field name="handlers" default="[]">
+						<arrayOf>
+							<key>
+								<string/>
+							</key>
+							<value>
+								<structure>
+									<field name="enabled" default="true">
+										<bool/>
+									</field>
+									<field name="service">
+										<useReusable ref="definition"/>
+									</field>
+									<field name="level" default="[]">
+										<structure>
+											<field name="debug" default="null">
+												<string/>
+												<null/>
+											</field>
+											<field name="production" default="null">
+												<string/>
+												<null/>
+											</field>
+										</structure>
+									</field>
+									<field name="bubble" default="true">
+										<bool/>
+									</field>
+									<field name="processors" default="[]">
+										<arrayOf>
+											<key>
+												<int/>
+												<string/>
+											</key>
+											<value>
+												<useReusable ref="definition"/>
+											</value>
+										</arrayOf>
+									</field>
+								</structure>
+							</value>
+						</arrayOf>
+					</field>
+					<field name="processors" default="[]">
+						<arrayOf>
+							<key>
+								<string/>
+							</key>
+							<value>
+								<useReusable ref="definition"/>
+							</value>
+						</arrayOf>
+					</field>
+					<field name="bridge">
+						<structure>
+							<field name="fromTracy" default="[]">
+								<listOf>
+									<value>
+										<string/>
+									</value>
+								</listOf>
+							</field>
+							<field name="toTracy" default="false">
+								<bool/>
+							</field>
+							<field name="tracyPanel" default="false">
+								<bool/>
+							</field>
+						</structure>
+					</field>
+					<field name="staticGetter" default="null">
+						<string/>
+						<null/>
+					</field>
+				</structure>
+			</schema>
+			<services>
+				<service name="logFlusher" type="OriNette\Monolog\LogFlusher"/>
+			</services>
+		</extension>
+	</extensions>
+	<reusables>
+		<reusable id="filtered-definition">
+			<structure>
+				<field name="allowed">
+					<listOf>
+						<value>
+							<string/>
+						</value>
+					</listOf>
+				</field>
+				<field name="forbidden">
+					<listOf>
+						<value>
+							<string/>
+						</value>
+					</listOf>
+				</field>
+			</structure>
+		</reusable>
+		<reusable id="definition">
+			<string/>
+			<arrayOf>
+				<key>
+					<int/>
+					<string/>
+				</key>
+				<value>
+					<mixed/>
+				</value>
+			</arrayOf>
+			<type value="object"/>
+		</reusable>
+	</reusables>
+</neon>

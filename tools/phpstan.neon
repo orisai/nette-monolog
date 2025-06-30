@@ -23,6 +23,11 @@ parameters:
 			- Orisai\Exceptions\Check\CheckedException
 
 	ignoreErrors:
+		# Internal classes in tests
+		-
+			message: '#(.+)internal(.+)OriNette(.+)#'
+			path: ../tests
+
 		# Monolog V2 and V3 compatibility
 		-
 			message: '#^Parameter \#1 \$record of method (.+)HandlerAdapter\:\:processRecord\(\) expects Monolog\\LogRecord, array<mixed>\|Monolog\\LogRecord given\.$#'

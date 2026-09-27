@@ -8,6 +8,7 @@ use Nette\Mail\Message;
 final class TestMailer implements Mailer
 {
 
+	/** @var list<Message> */
 	public array $mails = [];
 
 	public function send(Message $mail): void

@@ -2,6 +2,7 @@
 
 namespace Tests\OriNette\Monolog\Unit\DI;
 
+use Closure;
 use Generator;
 use Monolog\Handler\HandlerInterface;
 use Monolog\Handler\TestHandler;
@@ -20,6 +21,7 @@ use Orisai\Exceptions\Logic\InvalidArgument;
 use Orisai\Exceptions\Logic\InvalidState;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use ReflectionFunction;
 use Tests\OriNette\Monolog\Doubles\BazLogger;
 use Tests\OriNette\Monolog\Doubles\ExtendedTestHandler;
 use Tests\OriNette\Monolog\Doubles\FlushTrackingLogger;
@@ -939,14 +941,17 @@ MSG,
 
 		$tracyLogger = $container->getService('tracy.logger');
 		self::assertInstanceOf(\Tracy\Logger::class, $tracyLogger);
+		$mailer = $tracyLogger->mailer;
+		self::assertIsCallable($mailer);
+		$mailerName = (new ReflectionFunction(Closure::fromCallable($mailer)))->getName();
 		if ($enableDebugger) {
 			self::assertSame('foo@bar.baz', $tracyLogger->fromEmail);
 			self::assertSame('111 days', $tracyLogger->emailSnooze);
-			self::assertSame('send', $tracyLogger->mailer[1]);
+			self::assertSame('send', $mailerName);
 		} else {
 			self::assertNull($tracyLogger->fromEmail);
 			self::assertSame('2 days', $tracyLogger->emailSnooze);
-			self::assertSame('defaultMailer', $tracyLogger->mailer[1]);
+			self::assertSame('defaultMailer', $mailerName);
 		}
 	}
 
